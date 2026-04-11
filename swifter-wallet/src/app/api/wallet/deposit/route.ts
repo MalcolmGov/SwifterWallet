@@ -47,8 +47,9 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         amount: amountInCents,
         currency: "ZAR",
-        successUrl: successUrl || "https://your-app.vercel.app/deposit/success",
-        cancelUrl: cancelUrl || "https://your-app.vercel.app/deposit/cancel",
+        successUrl: successUrl || `${process.env.NEXT_PUBLIC_APP_URL || "https://anger-unwitting-humongous.ngrok-free.dev"}/deposit/success`,
+        cancelUrl: cancelUrl || `${process.env.NEXT_PUBLIC_APP_URL || "https://anger-unwitting-humongous.ngrok-free.dev"}/deposit/cancel`,
+        notifyUrl: `${process.env.NEXT_PUBLIC_APP_URL || "https://anger-unwitting-humongous.ngrok-free.dev"}/api/webhook/yoco`,
         metadata: {
           walletId: wallet.id,
           walletName: wallet.name,

@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl,
   FlatList, Animated, Dimensions, Platform,
@@ -43,8 +44,13 @@ export default function DashboardScreen({ navigation }: any) {
       const total = w.reduce((sum, wallet) => sum + parseFloat(wallet.balance), 0);
       setTotalBalance(total);
 
-      // Animate balance counter
-      Animated.timing(balanceAnim, { toValue: 1, duration: 1000, useNativeDriver: true }).start();
+      // Animate balance counter (avoid native driver on web — Animated.Text + native driver is unreliable)
+      balanceAnim.setValue(0);
+      Animated.timing(balanceAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: Platform.OS !== "web",
+      }).start();
 
       // Load transactions from all wallets
       const allEntries: api.TransactionEntry[] = [];
@@ -64,14 +70,11 @@ export default function DashboardScreen({ navigation }: any) {
     }
   }, []);
 
-  useEffect(() => { loadData(); }, [loadData]);
-
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", () => {
-      if (!loading) loadData();
-    });
-    return unsubscribe;
-  }, [navigation, loadData, loading]);
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -103,7 +106,10 @@ export default function DashboardScreen({ navigation }: any) {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.violet} />}
         contentContainerStyle={{ paddingBottom: 100 }}
-        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: Platform.OS !== "web" }
+        )}
         scrollEventThrottle={16}
       >
         {/* Header */}

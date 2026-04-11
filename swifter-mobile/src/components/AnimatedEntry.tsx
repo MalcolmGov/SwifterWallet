@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, ReactNode } from "react";
-import { Animated, ViewStyle } from "react-native";
+import { Animated, Platform, ViewStyle } from "react-native";
 
 interface Props {
   children: ReactNode;
@@ -18,18 +18,19 @@ export default function AnimatedEntry({ children, delay = 0, duration = 500, sli
   const translateY = useRef(new Animated.Value(slideFrom)).current;
 
   useEffect(() => {
+    const useNative = Platform.OS !== "web";
     const animation = Animated.parallel([
       Animated.timing(opacity, {
         toValue: 1,
         duration,
         delay,
-        useNativeDriver: true,
+        useNativeDriver: useNative,
       }),
       Animated.timing(translateY, {
         toValue: 0,
         duration,
         delay,
-        useNativeDriver: true,
+        useNativeDriver: useNative,
       }),
     ]);
     animation.start();

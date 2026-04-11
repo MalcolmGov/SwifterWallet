@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import BottomSheet from "@gorhom/bottom-sheet";
 import { useTheme } from "../context/ThemeContext";
 import TransactionItem from "../components/TransactionItem";
 import TransactionDetailSheet from "../components/TransactionDetailSheet";
@@ -27,7 +26,7 @@ export default function HistoryScreen({ navigation }: any) {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedTx, setSelectedTx] = useState<api.TransactionEntry | null>(null);
-  const sheetRef = useRef<BottomSheet>(null);
+  const [sheetVisible, setSheetVisible] = useState(false);
 
   const loadTransactions = useCallback(async () => {
     try {
@@ -176,7 +175,7 @@ export default function HistoryScreen({ navigation }: any) {
                     showBorder={i > 0}
                     onPress={() => {
                       setSelectedTx(tx);
-                      sheetRef.current?.snapToIndex(0);
+                      setSheetVisible(true);
                     }}
                   />
                 ))}
@@ -201,9 +200,9 @@ export default function HistoryScreen({ navigation }: any) {
       </ScrollView>
 
       <TransactionDetailSheet
-        ref={sheetRef}
         transaction={selectedTx}
-        onClose={() => setSelectedTx(null)}
+        visible={sheetVisible}
+        onClose={() => { setSheetVisible(false); setSelectedTx(null); }}
       />
     </View>
   );

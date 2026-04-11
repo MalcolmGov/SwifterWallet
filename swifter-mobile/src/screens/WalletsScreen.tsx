@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Platform } from "react-native";
+import {
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl,
+  Platform, Modal, TouchableWithoutFeedback, Animated, Alert,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -8,6 +11,7 @@ import { WalletColors, Gradients } from "../constants/theme";
 import AnimatedEntry from "../components/AnimatedEntry";
 import Skeleton from "../components/Skeleton";
 import * as api from "../services/api";
+import * as Haptics from "expo-haptics";
 
 const DEMO_USER_EMAIL = "demo@swifter.app";
 
@@ -18,10 +22,21 @@ export default function WalletsScreen({ navigation }: any) {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [balanceVisible, setBalanceVisible] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  const WALLET_TYPES = [
+    { type: "MAIN", name: "Main Wallet", icon: "wallet-outline" as const, gradient: Gradients.violet },
+    { type: "SAVINGS", name: "Savings", icon: "shield-outline" as const, gradient: Gradients.emerald },
+    { type: "BUSINESS", name: "Business", icon: "briefcase-outline" as const, gradient: Gradients.amber },
+    { type: "TRAVEL", name: "Travel", icon: "airplane-outline" as const, gradient: Gradients.blue },
+  ];
 
   const loadWallets = useCallback(async () => {
     try {
       const { user } = await api.createUser(DEMO_USER_EMAIL, "Malcolm");
+      setUserId(user.id);
       const { wallets: w } = await api.listWallets(user.id);
       setWallets(w);
     } catch (e) {
@@ -30,6 +45,20 @@ export default function WalletsScreen({ navigation }: any) {
       setLoading(false);
     }
   }, []);
+
+  const handleCreateWallet = async (type: string, name: string) => {
+    if (!userId || creating) return;
+    setCreating(true);
+    try {
+      await api.createWallet(userId, name, type);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      setShowCreateModal(false);
+      await loadWallets();
+    } catch (e: any) {
+      Alert.alert("Error", e.message || "Failed to create wallet");
+    }
+    setCreating(false);
+  };
 
   useEffect(() => { loadWallets(); }, [loadWallets]);
 
@@ -68,6 +97,7 @@ export default function WalletsScreen({ navigation }: any) {
               <Ionicons name={balanceVisible ? "eye-outline" : "eye-off-outline"} size={18} color={isDark ? "#d1d5db" : "#6b7280"} />
             </TouchableOpacity>
             <TouchableOpacity
+              onPress={() => setShowCreateModal(true)}
               style={[styles.iconBtn, { backgroundColor: colors.glass, borderColor: colors.glassBorder }]}
               activeOpacity={0.7}
             >
@@ -166,6 +196,52 @@ export default function WalletsScreen({ navigation }: any) {
           </AnimatedEntry>
         )}
       </ScrollView>
+
+      {/* Create Wallet Modal */}
+      <Modal visible={showCreateModal} transparent animationType="fade" onRequestClose={() => setShowCreateModal(false)}>
+        <TouchableWithoutFeedback onPress={() => setShowCreateModal(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={[styles.modalSheet, { backgroundColor: colors.card }]}>
+                <View style={[styles.modalHandle, { backgroundColor: isDark ? "rgba(255,255,255,0.2)" : "#d1d5db" }]} />
+                <Text style={[styles.modalTitle, { color: colors.text }]}>Create Wallet</Text>
+                <Text style={[styles.modalDesc, { color: colors.textMuted }]}>Choose a wallet type</Text>
+
+                {WALLET_TYPES.map((wt) => (
+                  <TouchableOpacity
+                    key={wt.type}
+                    onPress={() => handleCreateWallet(wt.type, wt.name)}
+                    disabled={creating}
+                    activeOpacity={0.7}
+                    style={[styles.walletTypeRow, {
+                      backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "#f9fafb",
+                      borderColor: isDark ? "rgba(255,255,255,0.06)" : "#e5e7eb",
+                      opacity: creating ? 0.5 : 1,
+                    }]}
+                  >
+                    <LinearGradient colors={wt.gradient} style={styles.walletTypeIcon} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+                      <Ionicons name={wt.icon} size={20} color="#fff" />
+                    </LinearGradient>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.walletTypeName, { color: colors.text }]}>{wt.name}</Text>
+                      <Text style={[styles.walletTypeDesc, { color: colors.textMuted }]}>{wt.type.charAt(0) + wt.type.slice(1).toLowerCase()} account</Text>
+                    </View>
+                    <Ionicons name="add-circle-outline" size={22} color={colors.violet} />
+                  </TouchableOpacity>
+                ))}
+
+                <TouchableOpacity
+                  onPress={() => setShowCreateModal(false)}
+                  activeOpacity={0.7}
+                  style={[styles.modalCancel, { backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "#f3f4f6" }]}
+                >
+                  <Text style={[styles.modalCancelText, { color: colors.text }]}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </View>
   );
 }
@@ -227,4 +303,20 @@ const styles = StyleSheet.create({
   emptyIconWrap: { width: 80, height: 80, borderRadius: 28, alignItems: "center", justifyContent: "center", marginBottom: 8 },
   emptyTitle: { fontSize: 18, fontWeight: "600" },
   emptyDesc: { fontSize: 14 },
+
+  // Modal
+  modalOverlay: { flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.5)" },
+  modalSheet: { borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 24, paddingBottom: 40 },
+  modalHandle: { width: 40, height: 4, borderRadius: 2, alignSelf: "center", marginTop: 12, marginBottom: 20 },
+  modalTitle: { fontSize: 20, fontWeight: "700", letterSpacing: -0.3, marginBottom: 4 },
+  modalDesc: { fontSize: 14, marginBottom: 20 },
+  walletTypeRow: {
+    flexDirection: "row", alignItems: "center", gap: 14, padding: 16,
+    borderRadius: 18, borderWidth: 1, marginBottom: 10,
+  },
+  walletTypeIcon: { width: 48, height: 48, borderRadius: 16, alignItems: "center", justifyContent: "center" },
+  walletTypeName: { fontSize: 15, fontWeight: "600" },
+  walletTypeDesc: { fontSize: 12, marginTop: 2 },
+  modalCancel: { paddingVertical: 16, borderRadius: 18, alignItems: "center", marginTop: 8 },
+  modalCancelText: { fontSize: 15, fontWeight: "600" },
 });
