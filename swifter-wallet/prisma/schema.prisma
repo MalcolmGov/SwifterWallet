@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Users ───────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  wallets Wallet[]
+
+  @@map("users")
+}
+
+// ─── Wallets ─────────────────────────────────────────────────────────
+
+enum WalletType {
+  MAIN
+  SAVINGS
+  BUSINESS
+  CUSTOM
+}
+
+model Wallet {
+  id        String     @id @default(uuid()) @db.Uuid
+  userId    String     @map("user_id") @db.Uuid
+  name      String
+  type      WalletType @default(MAIN)
+  balance   Decimal    @default(0) @db.Decimal(18, 2) // cached balance
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ledgerEntries LedgerEntry[]
+
+  @@index([userId])
+  @@map("wallets")
+}
+
+// ─── Transactions ────────────────────────────────────────────────────
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  TRANSFER
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REVERSED
+}
+
+model Transaction {
+  id            String            @id @default(uuid()) @db.Uuid
+  type          TransactionType
+  status        TransactionStatus @default(PENDING)
+  amount        Decimal           @db.Decimal(18, 2)
+  description   String?
+  referenceId   String?           @unique @map("reference_id") // external ref (e.g. Yoco payment ID)
+  metadata      Json?             // flexible store for provider-specific data
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+
+  ledgerEntries LedgerEntry[]
+
+  @@index([referenceId])
+  @@index([status])
+  @@map("transactions")
+}
+
+// ─── Ledger Entries (double-entry bookkeeping) ───────────────────────
+
+enum LedgerEntryType {
+  CREDIT
+  DEBIT
+}
+
+model LedgerEntry {
+  id            String   @id @default(uuid()) @db.Uuid
+  transactionId String   @map("transaction_id") @db.Uuid
+  walletId      String   @map("wallet_id") @db.Uuid
+  amount        Decimal  @db.Decimal(18, 2) // always positive; direction from type
+  type          LedgerEntryType @default(CREDIT)
+  runningBalance Decimal @db.Decimal(18, 2) @map("running_balance")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  transaction Transaction @relation(fields: [transactionId], references: [id])
+  wallet      Wallet      @relation(fields: [walletId], references: [id])
+
+  @@index([walletId, createdAt])
+  @@index([transactionId])
+  @@map("ledger_entries")
+}
