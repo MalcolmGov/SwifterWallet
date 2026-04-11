@@ -1,6 +1,9 @@
-import { Decimal } from "@prisma/client/runtime/library";
+import { Prisma } from "@prisma/client";
 import prisma from "./prisma";
 import { AppError } from "./errors";
+
+type Decimal = Prisma.Decimal;
+const Decimal = Prisma.Decimal;
 
 /**
  * Compute a wallet's balance from the ledger (source of truth).

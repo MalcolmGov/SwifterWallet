@@ -1,0 +1,23 @@
+0 verbose cli /opt/homebrew/Cellar/node/25.9.0_1/bin/node /opt/homebrew/lib/node_modules/npm/bin/npm-cli.js
+1 info using npm@11.12.1
+2 info using node@v25.9.0
+3 silly config load:file:/opt/homebrew/lib/node_modules/npm/npmrc
+4 silly config load:file:/Users/malcolmgovender/SwifterWallet/swifter-wallet/.npmrc
+5 silly config load:file:/Users/malcolmgovender/.npmrc
+6 silly config load:file:/opt/homebrew/etc/npmrc
+7 verbose title npm exec vercel deploy --prod --yes
+8 verbose argv "exec" "--" "vercel" "deploy" "--prod" "--yes"
+9 verbose logfile logs-max:10 dir:/Users/malcolmgovender/SwifterWallet/swifter-wallet/.npm-cache/_logs/2026-04-11T17_10_16_126Z-
+10 verbose logfile /Users/malcolmgovender/SwifterWallet/swifter-wallet/.npm-cache/_logs/2026-04-11T17_10_16_126Z-debug-0.log
+11 silly logfile start cleaning logs, removing 1 files
+12 silly logfile done cleaning log files
+13 silly packumentCache heap:4496293888 maxSize:1124073472 maxEntrySize:562036736
+14 http fetch GET 200 https://registry.npmjs.org/vercel 102ms (cache revalidated)
+15 silly packumentCache heap:4496293888 maxSize:1124073472 maxEntrySize:562036736
+16 silly packumentCache heap:4496293888 maxSize:1124073472 maxEntrySize:562036736
+17 verbose cwd /Users/malcolmgovender/SwifterWallet/swifter-wallet
+18 verbose os Darwin 25.4.0
+19 verbose node v25.9.0
+20 verbose npm  v11.12.1
+21 verbose exit 0
+22 info ok

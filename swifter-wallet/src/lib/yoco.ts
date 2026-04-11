@@ -1,8 +1,11 @@
 import crypto from "crypto";
-import { Decimal } from "@prisma/client/runtime/library";
+import { Prisma } from "@prisma/client";
 import prisma from "./prisma";
 import { AppError } from "./errors";
 import { computeBalanceInTx } from "./wallet";
+
+type Decimal = Prisma.Decimal;
+const Decimal = Prisma.Decimal;
 
 /**
  * Verify the webhook signature from Yoco.

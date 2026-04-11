@@ -1,7 +1,10 @@
-import { Decimal } from "@prisma/client/runtime/library";
+import { Prisma } from "@prisma/client";
 import prisma from "./prisma";
 import { AppError } from "./errors";
 import { computeBalanceInTx } from "./wallet";
+
+type Decimal = Prisma.Decimal;
+const Decimal = Prisma.Decimal;
 
 interface PaymentParams {
   walletId: string;
@@ -63,12 +66,12 @@ export async function executePayment({
     // 3. Create payment transaction
     const transaction = await tx.transaction.create({
       data: {
-        type: "PAYMENT",
+        type: "PAYMENT" as any, // eslint-disable-line @typescript-eslint/no-explicit-any
         status: "COMPLETED",
         amount,
         description: description ?? `Payment of R${amount.toString()}`,
         referenceId,
-        metadata: metadata ?? undefined,
+        metadata: (metadata ?? undefined) as any, // eslint-disable-line @typescript-eslint/no-explicit-any
       },
     });
 
