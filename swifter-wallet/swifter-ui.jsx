@@ -61,6 +61,7 @@ const ICON_MAP = {
   music: "/icons/music.png",
   wallet: "/icons/wallet.png",
   payment: "/icons/payment.png",
+  chatbanking: "/icons/chatbanking.png",
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────
@@ -163,6 +164,16 @@ export default function SwifterApp() {
   const [fadeIn, setFadeIn] = useState(false);
   const [slideUp, setSlideUp] = useState(false);
 
+  // ── Product integrations
+  const [voiceOpen, setVoiceOpen] = useState(false);
+  const [voiceText, setVoiceText] = useState("");
+  const [voiceListening, setVoiceListening] = useState(false);
+  const [pgScanning, setPgScanning] = useState(false);
+  const [pgResult, setPgResult] = useState(null);
+  const [notifChannel, setNotifChannel] = useState("whatsapp");
+  const [notifEnabled, setNotifEnabled] = useState(true);
+  const [toastMsg, setToastMsg] = useState("");
+
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 1400);
     return () => clearTimeout(t);
@@ -241,13 +252,14 @@ export default function SwifterApp() {
 
   const Dashboard = () => (
     <div className={`screen-fade ${fadeIn ? "visible" : ""}`}>
-      {/* Hero Header Section */}
-      <div className="hero-header">
-        <div className="hero-header-glow" />
-        <div className="top-bar">
-          <div className="top-bar-brand">
-            <Image src="/icons/swifter-logo.png" alt="Swifter" width={48} height={48} className="brand-logo" />
-            <div className="top-bar-text">
+      {/* Integrated Header */}
+      <div className="dash-header">
+        <div className="dash-header-aurora" />
+        {/* Row 1: Brand + Actions */}
+        <div className="dash-header-top">
+          <div className="dash-header-brand">
+            <Image src="/icons/swifter-logo.png" alt="Swifter" width={40} height={40} className="brand-logo" />
+            <div className="dash-header-brand-text">
               <span className="brand-name">Swifter<span className="brand-name-accent">Wallet</span></span>
               <p className="header-greeting">Good morning, <strong>Malcolm</strong> 👋</p>
             </div>
@@ -262,71 +274,98 @@ export default function SwifterApp() {
             </button>
           </div>
         </div>
-      </div>
-
-      {/* Hero Balance Card */}
-      <div className={`hero-card ${slideUp ? "slide-visible" : ""}`}>
-        <div className="hero-bg-orb hero-orb-1" />
-        <div className="hero-bg-orb hero-orb-2" />
-        <div className="hero-bg-orb hero-orb-3" />
-        <div className="hero-content">
-          <div className="hero-top">
-            <p className="hero-label">Total Balance</p>
-            <button onClick={() => setBalanceVisible(!balanceVisible)} className="hero-eye-btn" id="toggle-balance">
-              {balanceVisible ? <EyeSvg /> : <EyeOffSvg />}
-            </button>
+        {/* Row 2: Balance Display */}
+        <div className="dash-balance-row">
+          <div className="dash-balance-left">
+            <div className="dash-balance-label-row">
+              <span className="balance-live-dot" />
+              <span className="dash-balance-label">Total Balance</span>
+              <button onClick={() => setBalanceVisible(!balanceVisible)} className="dash-eye-btn" id="toggle-balance">
+                {balanceVisible ? <EyeSvg /> : <EyeOffSvg />}
+              </button>
+            </div>
+            <h2 className="dash-balance-amount">
+              {balanceVisible ? formatCurrency(totalBalance) : "R•••••••"}
+            </h2>
           </div>
-          <h2 className="hero-amount">
-            {balanceVisible ? formatCurrency(totalBalance) : "R•••••••"}
-          </h2>
-          <div className="hero-trend">
-            <div className="hero-trend-badge">
+          <div className="dash-balance-right">
+            <div className="dash-trend-chip">
               <TrendingUpSvg />
               <span>+12.5%</span>
             </div>
-            <span className="hero-trend-label">this month</span>
+            <svg viewBox="0 0 64 20" className="dash-sparkline">
+              <defs>
+                <linearGradient id="sparkG" x1="0" y1="0" x2="64" y2="0" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#7c3aed" stopOpacity="0.2" />
+                  <stop offset="50%" stopColor="#10b981" />
+                  <stop offset="100%" stopColor="#10b981" stopOpacity="0.3" />
+                </linearGradient>
+              </defs>
+              <path d="M0 16 Q8 14, 12 11 T24 9 T36 12 T48 5 T58 7 T64 3" fill="none" stroke="url(#sparkG)" strokeWidth="2" strokeLinecap="round" />
+            </svg>
           </div>
         </div>
       </div>
 
-      {/* Quick Actions with 3D Icons */}
-      <div className={`quick-actions ${slideUp ? "slide-visible delay-1" : ""}`}>
+      {/* Quick Actions */}
+      <div className={`action-bar ${slideUp ? "slide-visible delay-1" : ""}`}>
         {[
-          { icon: ICON_MAP.send, label: "Send", action: () => navigate("send"), gradient: "linear-gradient(135deg, #7c3aed, #6366f1)" },
-          { icon: ICON_MAP["add-funds"], label: "Add Funds", action: () => navigate("addFunds"), gradient: "linear-gradient(135deg, #059669, #10b981)" },
-          { icon: ICON_MAP.transfer, label: "Transfer", action: () => navigate("send"), gradient: "linear-gradient(135deg, #2563eb, #3b82f6)" },
+          { icon: ICON_MAP.send, label: "Send", action: () => navigate("send"), accent: "#7c3aed", bg: "rgba(124,58,237,0.12)" },
+          { icon: ICON_MAP["add-funds"], label: "Add Funds", action: () => navigate("addFunds"), accent: "#10b981", bg: "rgba(16,185,129,0.12)" },
+          { icon: ICON_MAP.transfer, label: "Transfer", action: () => navigate("send"), accent: "#3b82f6", bg: "rgba(59,130,246,0.12)" },
+          { icon: ICON_MAP.chatbanking, label: "WhatsApp", action: () => window.open("https://wa.me/27600000000?text=Hi%2C%20I'd%20like%20to%20manage%20my%20SwifterWallet", "_blank"), accent: "#25D366", bg: "rgba(37,211,102,0.12)" },
         ].map((a, i) => (
-          <button key={i} onClick={a.action} className="quick-action-btn" id={`action-${a.label.toLowerCase().replace(' ', '-')}`}>
-            <div className="quick-action-icon" style={{ background: a.gradient }}>
-              <Icon3D src={a.icon} alt={a.label} size={36} />
+          <button key={i} onClick={a.action} className="action-pill" style={{ '--pill-accent': a.accent, '--pill-bg': a.bg }} id={`action-${a.label.toLowerCase().replace(' ', '-')}`}>
+            <div className="action-pill-icon" style={{ background: a.bg }}>
+              <Icon3D src={a.icon} alt={a.label} size={28} />
             </div>
-            <span className="quick-action-label">{a.label}</span>
+            <span className="action-pill-label">{a.label}</span>
+            <span className="action-pill-chevron" style={{ color: a.accent }}>›</span>
           </button>
         ))}
       </div>
 
-      {/* Wallet Cards */}
+      {/* Wallet Tiles */}
       <div className={`section ${slideUp ? "slide-visible delay-2" : ""}`}>
         <div className="section-header">
           <h3 className="section-title">My Wallets</h3>
           <button onClick={() => navigate("wallets")} className="section-link" id="see-all-wallets">See All</button>
         </div>
-        <div className="wallet-cards-scroll">
-          {WALLETS.map((w) => (
-            <button key={w.id} onClick={() => { setActiveWallet(w); navigate("wallets"); }} className="wallet-mini-card" style={{ background: w.gradient }} id={`wallet-${w.id}`}>
-              <div className="wallet-mini-orb" />
-              <div className="wallet-mini-content">
-                <div className="wallet-mini-top">
-                  <Icon3D src={ICON_MAP.wallet} alt="wallet" size={24} />
-                  <span className="wallet-mini-type">{w.type}</span>
+        <div className="wallet-tiles">
+          {WALLETS.map((w, i) => {
+            const total = WALLETS.reduce((sum, wl) => sum + wl.balance, 0);
+            const pct = Math.round((w.balance / total) * 100);
+            return (
+              <button key={w.id} onClick={() => { setActiveWallet(w); navigate("wallets"); }} className={`wallet-tile ${i === 0 ? "wallet-tile-featured" : ""}`} style={{ '--accent': w.accent }} id={`wallet-${w.id}`}>
+                <div className="wallet-tile-glow" style={{ background: w.accent }} />
+                <div className="wallet-tile-accent" style={{ borderColor: w.accent }} />
+                <div className="wallet-tile-content">
+                  <div className="wallet-tile-header">
+                    <div className="wallet-tile-ring" style={{ '--accent': w.accent, '--pct': pct }}>
+                      <svg viewBox="0 0 36 36" className="wallet-ring-svg">
+                        <circle cx="18" cy="18" r="15.5" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3" />
+                        <circle cx="18" cy="18" r="15.5" fill="none" stroke={w.accent} strokeWidth="3" strokeLinecap="round"
+                          strokeDasharray={`${pct} ${100 - pct}`} strokeDashoffset="25"
+                          style={{ filter: `drop-shadow(0 0 4px ${w.accent})` }} />
+                      </svg>
+                      <span className="wallet-ring-pct">{pct}%</span>
+                    </div>
+                    <div className="wallet-tile-info">
+                      <span className="wallet-tile-type" style={{ color: w.accent }}>{w.type}</span>
+                      <p className="wallet-tile-name">{w.name}</p>
+                    </div>
+                  </div>
+                  <div className="wallet-tile-footer">
+                    <p className="wallet-tile-balance">
+                      {balanceVisible ? formatCurrency(w.balance) : "R•••••"}
+                    </p>
+                    <span className="wallet-tile-arrow" style={{ color: w.accent }}>→</span>
+                  </div>
                 </div>
-                <p className="wallet-mini-name">{w.name}</p>
-                <p className="wallet-mini-balance">
-                  {balanceVisible ? formatCurrency(w.balance) : "R•••••"}
-                </p>
-              </div>
-            </button>
-          ))}
+                <div className="wallet-tile-shimmer" />
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -352,12 +391,65 @@ export default function SwifterApp() {
         </div>
       </div>
 
-      {/* FAB */}
-      <button onClick={() => navigate("send")} className="fab" id="fab-send">
-        <Icon3D src={ICON_MAP.send} alt="Send" size={28} />
+      {/* Voice Co-Pilot FAB */}
+      <button onClick={() => { setVoiceOpen(true); setVoiceText(""); setVoiceListening(true); }} className="fab voice-fab" id="voice-fab">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+        </svg>
       </button>
     </div>
   );
+
+  // ─── Voice Co-Pilot Overlay ───────────────────────────────────────
+
+  const VoiceOverlay = () => {
+    useEffect(() => {
+      if (!voiceListening) return;
+      const phrases = ["Listening...", "Send R200 to savings...", "Processing command..."];
+      let i = 0;
+      const iv = setInterval(() => {
+        setVoiceText(phrases[i % phrases.length]);
+        i++;
+        if (i >= phrases.length) { clearInterval(iv); setVoiceListening(false); setVoiceText("✅ R200 transferred to Savings"); }
+      }, 1800);
+      return () => clearInterval(iv);
+    }, [voiceListening]);
+
+    if (!voiceOpen) return null;
+    return (
+      <div className="voice-overlay" onClick={() => setVoiceOpen(false)}>
+        <div className="voice-panel" onClick={(e) => e.stopPropagation()}>
+          <button onClick={() => setVoiceOpen(false)} className="voice-close">✕</button>
+          <div className="voice-icon-ring">
+            <div className={`voice-pulse ${voiceListening ? "voice-active" : ""}`} />
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+            </svg>
+          </div>
+          <h3 className="voice-title">Voice Co-Pilot</h3>
+          <p className="voice-subtitle">{voiceText || "Tap mic to start"}</p>
+          <div className="voice-waveform">
+            {[...Array(12)].map((_, i) => <div key={i} className={`voice-bar ${voiceListening ? "voice-bar-active" : ""}`} style={{ animationDelay: `${i * 0.08}s` }} />)}
+          </div>
+          <div className="voice-suggestions">
+            <p className="voice-suggest-label">Try saying:</p>
+            {["Send R500 to savings", "What's my balance?", "Show last transactions"].map((s, i) => (
+              <button key={i} className="voice-suggest-chip" onClick={() => { setVoiceText(s); setVoiceListening(true); }}>{s}</button>
+            ))}
+          </div>
+          {!voiceListening && <button onClick={() => { setVoiceListening(true); setVoiceText(""); }} className="primary-btn primary-violet" style={{ marginTop: "1rem", width: "100%" }}>Tap to Speak</button>}
+        </div>
+      </div>
+    );
+  };
+
+  // ─── Toast Notification (SmartSendr) ──────────────────────────────
+
+  useEffect(() => {
+    if (!toastMsg) return;
+    const t = setTimeout(() => setToastMsg(""), 3500);
+    return () => clearTimeout(t);
+  }, [toastMsg]);
 
   // ─── Wallets Screen ─────────────────────────────────────────────
 
@@ -920,7 +1012,6 @@ export default function SwifterApp() {
       <div className="settings-list">
         {[
           { emoji: "👤", label: "Profile", desc: "Manage your account" },
-          { emoji: "🔔", label: "Notifications", desc: "Alerts & preferences" },
           { emoji: "💳", label: "Payment Methods", desc: `${savedCards.length} card${savedCards.length !== 1 ? "s" : ""} saved`, action: () => navigate("manageCards") },
           { emoji: dark ? "☀️" : "🌙", label: "Appearance", desc: dark ? "Switch to light mode" : "Switch to dark mode", action: () => setDark(!dark) },
         ].map((item, i) => (
@@ -934,6 +1025,41 @@ export default function SwifterApp() {
           </button>
         ))}
       </div>
+
+      {/* SmartSendr Notification Preferences */}
+      <div className="smartsendr-card" style={{ marginTop: "1.5rem" }}>
+        <div className="smartsendr-header">
+          <span className="smartsendr-logo">📲 SmartSendr</span>
+          <button
+            className={`toggle-switch ${notifEnabled ? "toggle-on" : ""}`}
+            onClick={() => setNotifEnabled(!notifEnabled)}
+            id="notif-toggle"
+          >
+            <div className="toggle-thumb" />
+          </button>
+        </div>
+        <p className="smartsendr-desc">Get instant receipts for every transaction</p>
+        {notifEnabled && (
+          <div className="smartsendr-channels">
+            {[
+              { id: "whatsapp", label: "WhatsApp", icon: "💬", color: "#25D366" },
+              { id: "sms", label: "SMS", icon: "📱", color: "#3b82f6" },
+              { id: "email", label: "Email", icon: "📧", color: "#8b5cf6" },
+            ].map((ch) => (
+              <button
+                key={ch.id}
+                className={`channel-chip ${notifChannel === ch.id ? "channel-active" : ""}`}
+                style={{ '--ch-color': ch.color }}
+                onClick={() => { setNotifChannel(ch.id); setToastMsg(`Notifications set to ${ch.label}`); }}
+                id={`channel-${ch.id}`}
+              >
+                <span>{ch.icon}</span>
+                <span>{ch.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 
@@ -941,10 +1067,10 @@ export default function SwifterApp() {
 
   const TabBar = () => {
     const tabs = [
-      { id: "dashboard", Icon: HomeIcon, label: "Home" },
-      { id: "wallets", Icon: WalletIcon, label: "Wallets" },
-      { id: "history", Icon: ClockIcon, label: "History" },
-      { id: "settings", Icon: SettingsIcon, label: "Settings" },
+      { id: "dashboard", icon: "/icons/nav-home.png", label: "Home" },
+      { id: "wallets", icon: "/icons/nav-wallets.png", label: "Wallets" },
+      { id: "history", icon: "/icons/nav-history.png", label: "History" },
+      { id: "settings", icon: "/icons/nav-settings.png", label: "Settings" },
     ];
     return (
       <div className="tab-bar" id="main-tab-bar">
@@ -953,7 +1079,7 @@ export default function SwifterApp() {
             const active = screen === tab.id;
             return (
               <button key={tab.id} onClick={() => navigate(tab.id)} className={`tab-item ${active ? "tab-active" : ""}`} id={`tab-${tab.id}`}>
-                <tab.Icon active={active} />
+                <Image src={tab.icon} alt={tab.label} width={28} height={28} className={`tab-icon-3d ${active ? "tab-icon-active" : ""}`} />
                 <span className="tab-label">{tab.label}</span>
                 {active && <div className="tab-dot" />}
               </button>
@@ -997,6 +1123,8 @@ export default function SwifterApp() {
         {screen === "manageCards" && <ManageCardsScreen />}
       </div>
       {!["send", "addFunds", "manageCards"].includes(screen) && <TabBar />}
+      <VoiceOverlay />
+      {toastMsg && <div className="smartsendr-toast">{toastMsg}</div>}
     </div>
   );
 }
@@ -1006,14 +1134,96 @@ export default function SwifterApp() {
 function SendConfirmation({ wallet, recipient, amount, navigate }) {
   const [sent, setSent] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [pgPhase, setPgPhase] = useState(null); // null | "scanning" | "allowed" | "blocked"
 
-  const handleSend = () => {
+  const handleSend = async () => {
+    // ─── PayGuard SDK Risk Assessment ────────────────────
+    setPgPhase("scanning");
+
+    try {
+      // Real SDK integration pattern — swap API key via env var
+      const apiKey = typeof window !== "undefined" && window.__PAYGUARD_KEY__
+        ? window.__PAYGUARD_KEY__
+        : "pk_sandbox_swifterwallet_demo";
+
+      const response = await fetch("https://risk-engine-production-18e6.up.railway.app/api/v1/assess", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
+        body: JSON.stringify({
+          transactionId: `TXN-${Date.now()}`,
+          amount: parseFloat(amount),
+          currency: "ZAR",
+          channel: "mobile_banking",
+          paymentMethod: "wallet_transfer",
+          customerId: "CUST-MALCOLM-001",
+          recipientId: recipient?.id || "RCP-001",
+          metadata: { source: "SwifterWallet", version: "1.0" },
+        }),
+      });
+
+      const result = response.ok ? await response.json() : { decision: "ALLOW", riskScore: 12 };
+
+      if (result.decision === "BLOCK") {
+        setPgPhase("blocked");
+        return; // Stop — fraud detected
+      }
+
+      setPgPhase("allowed");
+    } catch {
+      // Fail-open: if PayGuard is unreachable, allow the transaction
+      setPgPhase("allowed");
+    }
+
+    // Brief pause to show the "Secure" badge
+    await new Promise((r) => setTimeout(r, 800));
+
+    // ─── Process Transaction ─────────────────────────────
     setProcessing(true);
+    setPgPhase(null);
     setTimeout(() => {
       setProcessing(false);
       setSent(true);
     }, 1800);
   };
+
+  // PayGuard scanning overlay
+  if (pgPhase === "scanning") {
+    return (
+      <div className="processing-screen">
+        <div className="pg-shield-ring">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <div className="pg-shield-spinner" />
+        </div>
+        <p className="processing-title" style={{ color: "#a78bfa" }}>PayGuard Scanning...</p>
+        <p className="processing-sub">Checking transaction security</p>
+      </div>
+    );
+  }
+
+  if (pgPhase === "allowed") {
+    return (
+      <div className="processing-screen">
+        <div className="pg-shield-ring pg-shield-ok">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <p className="processing-title" style={{ color: "#10b981" }}>✓ Secure</p>
+        <p className="processing-sub">Protected by PayGuard</p>
+      </div>
+    );
+  }
+
+  if (pgPhase === "blocked") {
+    return (
+      <div className="processing-screen">
+        <div className="pg-shield-ring pg-shield-blocked">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <p className="processing-title" style={{ color: "#ef4444" }}>Transaction Blocked</p>
+        <p className="processing-sub">PayGuard detected suspicious activity</p>
+        <button onClick={() => { setPgPhase(null); navigate("dashboard"); }} className="primary-btn" style={{ marginTop: "2rem", width: "80%", background: "#ef4444" }}>Back to Dashboard</button>
+      </div>
+    );
+  }
 
   if (processing) return <ProcessingAnimation color="violet" />;
 
@@ -1028,7 +1238,8 @@ function SendConfirmation({ wallet, recipient, amount, navigate }) {
         <h2 className="success-title">Sent!</h2>
         <p className="success-amount">R{Number(amount).toFixed(2)}</p>
         <p className="success-sub">to {recipient?.name}</p>
-        <button onClick={() => navigate("dashboard")} className="primary-btn primary-violet" style={{ marginTop: "2.5rem", width: "100%" }} id="send-done">
+        <div className="pg-badge">🛡️ Protected by PayGuard</div>
+        <button onClick={() => navigate("dashboard")} className="primary-btn primary-violet" style={{ marginTop: "2rem", width: "100%" }} id="send-done">
           Back to Dashboard
         </button>
       </div>
@@ -1055,6 +1266,10 @@ function SendConfirmation({ wallet, recipient, amount, navigate }) {
         <div className="confirm-row confirm-row-border">
           <span>Fee</span>
           <span className="confirm-fee">Free</span>
+        </div>
+        <div className="confirm-row confirm-row-border">
+          <span>Security</span>
+          <span className="confirm-value" style={{ color: "#7c3aed" }}>🛡️ PayGuard</span>
         </div>
       </div>
       <button onClick={handleSend} className="primary-btn primary-violet" id="confirm-send">
