@@ -1137,41 +1137,78 @@ export default function SwifterApp() {
   };
 
   // ─── Loading State ──────────────────────────────────────────────
+  // ─── Phone Frame Wrapper ────────────────────────────────────────
+
+  const PhoneFrame = ({ children }) => (
+    <div className="phone-stage">
+      <div className="phone-frame">
+        {/* Top bezel with camera */}
+        <div className="phone-bezel-top">
+          <div className="phone-speaker" />
+          <div className="phone-camera" />
+        </div>
+        {/* Status bar */}
+        <div className="phone-status-bar">
+          <span className="status-time">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+          <div className="status-icons">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" opacity="0.7"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" opacity="0.7"><path d="M2 22h20V2z"/></svg>
+            <div className="status-battery">
+              <div className="battery-body"><div className="battery-fill" /></div>
+              <div className="battery-tip" />
+            </div>
+          </div>
+        </div>
+        {/* Screen content */}
+        <div className="phone-screen">
+          {children}
+        </div>
+        {/* Bottom nav indicator */}
+        <div className="phone-bezel-bottom">
+          <div className="phone-home-bar" />
+        </div>
+      </div>
+    </div>
+  );
 
   if (loading) {
     return (
-      <div className={`app-shell ${dark ? "dark" : "light"}`}>
-        <div className="loading-screen">
-          <div className="loading-logo">
-            <Icon3D src={ICON_MAP.wallet} alt="Swifter" size={64} />
-          </div>
-          <h1 className="loading-title">Swifter</h1>
-          <p className="loading-sub">Your money, simplified</p>
-          <div className="loading-spinner">
-            <div className="spinner-ring" />
+      <PhoneFrame>
+        <div className={`app-shell ${dark ? "dark" : "light"}`}>
+          <div className="loading-screen">
+            <div className="loading-logo">
+              <Icon3D src={ICON_MAP.wallet} alt="Swifter" size={64} />
+            </div>
+            <h1 className="loading-title">Swifter</h1>
+            <p className="loading-sub">Your money, simplified</p>
+            <div className="loading-spinner">
+              <div className="spinner-ring" />
+            </div>
           </div>
         </div>
-      </div>
+      </PhoneFrame>
     );
   }
 
   // ─── Main Render ────────────────────────────────────────────────
 
   return (
-    <div className={`app-shell ${dark ? "dark" : "light"}`}>
-      <div className="app-container">
-        {screen === "dashboard" && Dashboard()}
-        {screen === "wallets" && WalletsScreen()}
-        {screen === "send" && SendScreen()}
-        {screen === "addFunds" && AddFundsScreen()}
-        {screen === "history" && HistoryScreen()}
-        {screen === "settings" && SettingsScreen()}
-        {screen === "manageCards" && <ManageCardsScreen />}
+    <PhoneFrame>
+      <div className={`app-shell ${dark ? "dark" : "light"}`}>
+        <div className="app-container">
+          {screen === "dashboard" && Dashboard()}
+          {screen === "wallets" && WalletsScreen()}
+          {screen === "send" && SendScreen()}
+          {screen === "addFunds" && AddFundsScreen()}
+          {screen === "history" && HistoryScreen()}
+          {screen === "settings" && SettingsScreen()}
+          {screen === "manageCards" && <ManageCardsScreen />}
+        </div>
+        {!["send", "addFunds", "manageCards"].includes(screen) && <TabBar />}
+        <VoiceOverlay />
+        {toastMsg && <div className="smartsendr-toast">{toastMsg}</div>}
       </div>
-      {!["send", "addFunds", "manageCards"].includes(screen) && <TabBar />}
-      <VoiceOverlay />
-      {toastMsg && <div className="smartsendr-toast">{toastMsg}</div>}
-    </div>
+    </PhoneFrame>
   );
 }
 
