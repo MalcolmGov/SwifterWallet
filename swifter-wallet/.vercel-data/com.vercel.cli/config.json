@@ -3,6 +3,5 @@
   "// Docs": "https://vercel.com/docs/projects/project-configuration/global-configuration#config.json",
   "telemetry": {
     "enabled": true
-  },
-  "currentTeam": "team_dEvWQciPvCA9Nb2DSk8Mowhi"
+  }
 }

@@ -1065,6 +1065,8 @@ export default function SwifterApp() {
 
   // ─── Tab Bar ────────────────────────────────────────────────────
 
+  const [menuOpen, setMenuOpen] = useState(false);
+
   const TabBar = () => {
     const tabs = [
       { id: "dashboard", icon: "/icons/nav-home.png", label: "Home" },
@@ -1072,21 +1074,55 @@ export default function SwifterApp() {
       { id: "history", icon: "/icons/nav-history.png", label: "History" },
       { id: "settings", icon: "/icons/nav-settings.png", label: "Settings" },
     ];
+    // Spread across -160° to -20° (wide arc above)
+    const angles = [-155, -115, -65, -25];
+    const radius = 130;
     return (
-      <div className="tab-bar" id="main-tab-bar">
-        <div className="tab-bar-inner">
-          {tabs.map((tab) => {
+      <>
+        {menuOpen && <div className="radial-backdrop" onClick={() => setMenuOpen(false)} />}
+
+        <div className="radial-nav" id="main-tab-bar">
+          {tabs.map((tab, i) => {
             const active = screen === tab.id;
+            const rad = (angles[i] * Math.PI) / 180;
+            const x = menuOpen ? Math.cos(rad) * radius : 0;
+            const y = menuOpen ? Math.sin(rad) * radius : 0;
             return (
-              <button key={tab.id} onClick={() => navigate(tab.id)} className={`tab-item ${active ? "tab-active" : ""}`} id={`tab-${tab.id}`}>
-                <Image src={tab.icon} alt={tab.label} width={28} height={28} className={`tab-icon-3d ${active ? "tab-icon-active" : ""}`} />
-                <span className="tab-label">{tab.label}</span>
-                {active && <div className="tab-dot" />}
-              </button>
+              <div
+                key={tab.id}
+                className={`radial-item ${menuOpen ? "radial-item-open" : ""} ${active ? "radial-item-active" : ""}`}
+                style={{
+                  transform: `translate(${x}px, ${y}px) scale(${menuOpen ? 1 : 0})`,
+                  transitionDelay: menuOpen ? `${i * 60}ms` : `${(3 - i) * 40}ms`,
+                }}
+              >
+                <button
+                  onClick={() => { navigate(tab.id); setMenuOpen(false); }}
+                  className="radial-item-btn"
+                  id={`tab-${tab.id}`}
+                >
+                  <Image src={tab.icon} alt={tab.label} width={36} height={36} className="radial-item-icon" />
+                </button>
+                <span className="radial-item-label">{tab.label}</span>
+              </div>
             );
           })}
+
+          {/* Center Orb */}
+          <button
+            className={`radial-orb ${menuOpen ? "radial-orb-open" : ""}`}
+            onClick={() => setMenuOpen(!menuOpen)}
+            id="radial-menu-btn"
+          >
+            <div className="radial-orb-ring" />
+            <div className="radial-orb-ring radial-orb-ring-2" />
+            <div className="radial-orb-core">
+              <div className="radial-orb-highlight" />
+              <span className="radial-orb-text">{menuOpen ? "✕" : "Menu"}</span>
+            </div>
+          </button>
         </div>
-      </div>
+      </>
     );
   };
 

@@ -827,71 +827,209 @@ input { font-family: inherit; }
 
 .fab:active { transform: scale(0.9); }
 
-/* ─── Tab Bar ───────────────────────────────────────────────────── */
+/* ─── Radial Menu Nav ───────────────────────────────────────────── */
 
-.tab-bar {
+.radial-backdrop {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 50;
-  background: var(--bg-glass);
-  backdrop-filter: blur(24px) saturate(180%);
-  border-top: 2px solid transparent;
-  border-image: linear-gradient(90deg, transparent, rgba(124,58,237,0.3), rgba(99,102,241,0.2), transparent) 1;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  inset: 0;
+  z-index: 49;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(16px);
+  animation: fadeIn 0.25s ease;
 }
 
-.tab-bar-inner {
+.radial-nav {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
   display: flex;
   align-items: center;
-  justify-content: space-around;
-  padding: 0.5rem 0;
-  max-width: 430px;
-  margin: 0 auto;
+  justify-content: center;
 }
 
-.tab-item {
+/* ─── Center Orb ────────────────────────────────────────────────── */
+
+.radial-orb {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 55;
+  cursor: pointer;
+  transition: all 0.4s var(--ease-spring);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.radial-orb-core {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 30%, #1e3a5f 0%, #0f2340 45%, #091728 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  z-index: 2;
+  box-shadow: 0 8px 32px rgba(15, 35, 64, 0.5),
+              0 0 0 2px rgba(59, 130, 246, 0.25),
+              inset 0 -4px 12px rgba(0, 0, 0, 0.5),
+              inset 0 2px 6px rgba(147, 197, 253, 0.1);
+  transition: all 0.4s var(--ease-spring);
+}
+
+.radial-orb:active .radial-orb-core { transform: scale(0.92); }
+
+.radial-orb-highlight {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 16px;
+  background: radial-gradient(ellipse, rgba(147, 197, 253, 0.18) 0%, transparent 70%);
+  filter: blur(4px);
+  pointer-events: none;
+}
+
+.radial-orb-text {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: rgba(191, 219, 254, 0.95);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  z-index: 2;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Animated pulsing rings */
+.radial-orb-ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(59, 130, 246, 0.18);
+  z-index: 1;
+  animation: orbPulse 3s ease-in-out infinite;
+}
+
+.radial-orb-ring-2 {
+  inset: -14px;
+  border-color: rgba(59, 130, 246, 0.07);
+  animation-delay: 1.5s;
+}
+
+@keyframes orbPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.06); opacity: 0.4; }
+}
+
+.radial-orb-open .radial-orb-core {
+  background: radial-gradient(circle at 40% 30%, #3d1a1a 0%, #2a1010 45%, #1a0808 100%);
+  box-shadow: 0 8px 32px rgba(239, 68, 68, 0.3),
+              0 0 0 2px rgba(239, 68, 68, 0.25),
+              inset 0 -4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.radial-orb-open .radial-orb-text {
+  color: rgba(252, 165, 165, 0.95);
+  font-size: 1.1rem;
+  letter-spacing: 0;
+}
+
+.radial-orb-open .radial-orb-ring {
+  border-color: rgba(239, 68, 68, 0.12);
+}
+
+.radial-orb-label {
+  display: none;
+}
+
+/* ─── Radial Items ──────────────────────────────────────────────── */
+
+.radial-item {
+  position: absolute;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 0.25rem 1rem;
-  color: var(--text-muted);
-  transition: color 0.2s;
+  gap: 6px;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.45s var(--ease-spring);
+  z-index: 53;
 }
 
-.tab-icon-3d {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
-  opacity: 0.5;
-  filter: grayscale(40%);
-  transition: all 0.3s var(--ease-spring);
-}
-
-.tab-icon-active {
+.radial-item-open {
   opacity: 1;
-  filter: grayscale(0%) drop-shadow(0 2px 6px rgba(124, 58, 237, 0.4));
-  transform: scale(1.1) translateY(-1px);
+  pointer-events: auto;
 }
 
-.tab-active {
-  color: #7c3aed;
-}
-
-.tab-label {
-  font-size: 0.65rem;
-  font-weight: 600;
-}
-
-.tab-dot {
-  width: 4px;
-  height: 4px;
+.radial-item-btn {
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
-  background: #7c3aed;
-  margin-top: 1px;
+  background: rgba(15, 12, 30, 0.65);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35),
+              inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.3s var(--ease-spring);
+  -webkit-tap-highlight-color: transparent;
 }
+
+.radial-item-btn:hover,
+.radial-item-btn:active {
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: scale(1.1);
+}
+
+.radial-item-active .radial-item-btn {
+  border-color: rgba(124, 58, 237, 0.5);
+  background: rgba(124, 58, 237, 0.12);
+  box-shadow: 0 8px 28px rgba(124, 58, 237, 0.25),
+              0 0 16px rgba(124, 58, 237, 0.1);
+}
+
+.radial-item-icon {
+  width: 38px !important;
+  height: 38px !important;
+  object-fit: contain;
+}
+
+.radial-item-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.8);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  animation: fadeIn 0.25s ease 0.1s both;
+}
+
+.radial-item-active .radial-item-label {
+  color: #c4b5fd;
+}
+
+/* Light mode overrides */
+:root .radial-orb-core {
+  background: radial-gradient(circle at 40% 30%, #2563eb 0%, #1e40af 50%, #1e3a8a 100%);
+  box-shadow: 0 8px 32px rgba(37, 99, 235, 0.3),
+              0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+:root .radial-orb-text { color: white; }
+:root .radial-item-btn {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+:root .radial-item-label { color: rgba(0, 0, 0, 0.7); }
+:root .radial-item-active .radial-item-label { color: #7c3aed; }
 
 /* ─── Sub Header ────────────────────────────────────────────────── */
 

@@ -7,8 +7,8 @@
 6 silly config load:file:/opt/homebrew/etc/npmrc
 7 verbose title npm exec next build
 8 verbose argv "exec" "--" "next" "build"
-9 verbose logfile logs-max:10 dir:/Users/malcolmgovender/SwifterWallet/swifter-wallet/.npm-cache/_logs/2026-04-11T17_25_02_080Z-
-10 verbose logfile /Users/malcolmgovender/SwifterWallet/swifter-wallet/.npm-cache/_logs/2026-04-11T17_25_02_080Z-debug-0.log
+9 verbose logfile logs-max:10 dir:/Users/malcolmgovender/SwifterWallet/swifter-wallet/.npm-cache/_logs/2026-04-12T02_41_27_054Z-
+10 verbose logfile /Users/malcolmgovender/SwifterWallet/swifter-wallet/.npm-cache/_logs/2026-04-12T02_41_27_054Z-debug-0.log
 11 silly logfile start cleaning logs, removing 1 files
 12 silly logfile done cleaning log files
 13 verbose cwd /Users/malcolmgovender/SwifterWallet/swifter-wallet
