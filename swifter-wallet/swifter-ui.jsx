@@ -1069,54 +1069,64 @@ export default function SwifterApp() {
 
   const TabBar = () => {
     const tabs = [
-      { id: "dashboard", icon: "/icons/nav-home.png", label: "Home" },
-      { id: "wallets", icon: "/icons/nav-wallets.png", label: "Wallets" },
-      { id: "history", icon: "/icons/nav-history.png", label: "History" },
-      { id: "settings", icon: "/icons/nav-settings.png", label: "Settings" },
+      { id: "dashboard", icon: "/icons/nav-home.png", label: "Home", glow: "#06b6d4" },
+      { id: "wallets", icon: "/icons/nav-wallets.png", label: "Wallets", glow: "#f59e0b" },
+      { id: "history", icon: "/icons/nav-history.png", label: "History", glow: "#10b981" },
+      { id: "settings", icon: "/icons/nav-settings.png", label: "Settings", glow: "#ec4899" },
     ];
-    // Spread across -160° to -20° (wide arc above)
-    const angles = [-155, -115, -65, -25];
-    const radius = 130;
+    const angles = [-150, -110, -70, -30];
+    const radius = 140;
     return (
       <>
-        {menuOpen && <div className="radial-backdrop" onClick={() => setMenuOpen(false)} />}
+        {/* Frosted backdrop */}
+        <div className={`radial-backdrop ${menuOpen ? "radial-backdrop-open" : ""}`} onClick={() => setMenuOpen(false)} />
 
-        <div className="radial-nav" id="main-tab-bar">
+        <div className={`radial-nav ${menuOpen ? "radial-nav-open" : ""}`} id="main-tab-bar">
+          {/* Ambient base glow */}
+          <div className={`radial-ambient ${menuOpen ? "radial-ambient-open" : ""}`} />
+
           {tabs.map((tab, i) => {
             const active = screen === tab.id;
             const rad = (angles[i] * Math.PI) / 180;
             const x = menuOpen ? Math.cos(rad) * radius : 0;
             const y = menuOpen ? Math.sin(rad) * radius : 0;
+            const z = menuOpen ? 20 + i * 5 : 0; // depth layer
             return (
               <div
                 key={tab.id}
                 className={`radial-item ${menuOpen ? "radial-item-open" : ""} ${active ? "radial-item-active" : ""}`}
                 style={{
-                  transform: `translate(${x}px, ${y}px) scale(${menuOpen ? 1 : 0})`,
-                  transitionDelay: menuOpen ? `${i * 60}ms` : `${(3 - i) * 40}ms`,
+                  transform: `translate3d(${x}px, ${y}px, ${z}px) scale(${menuOpen ? 1 : 0.2})`,
+                  transitionDelay: menuOpen ? `${80 + i * 70}ms` : `${(3 - i) * 50}ms`,
+                  '--item-glow': tab.glow,
                 }}
               >
+                {/* Ambient glow behind icon */}
+                <div className="radial-item-glow" />
                 <button
                   onClick={() => { navigate(tab.id); setMenuOpen(false); }}
                   className="radial-item-btn"
                   id={`tab-${tab.id}`}
                 >
-                  <Image src={tab.icon} alt={tab.label} width={36} height={36} className="radial-item-icon" />
+                  <Image src={tab.icon} alt={tab.label} width={40} height={40} className="radial-item-icon" />
                 </button>
-                <span className="radial-item-label">{tab.label}</span>
+                <span className={`radial-item-label ${menuOpen ? "radial-label-show" : ""}`}>{tab.label}</span>
               </div>
             );
           })}
 
-          {/* Center Orb */}
+          {/* Center Orb — primary action */}
           <button
             className={`radial-orb ${menuOpen ? "radial-orb-open" : ""}`}
             onClick={() => setMenuOpen(!menuOpen)}
             id="radial-menu-btn"
           >
+            <div className="radial-orb-shadow" />
             <div className="radial-orb-ring" />
             <div className="radial-orb-ring radial-orb-ring-2" />
+            <div className="radial-orb-ring radial-orb-ring-3" />
             <div className="radial-orb-core">
+              <div className="radial-orb-sheen" />
               <div className="radial-orb-highlight" />
               <span className="radial-orb-text">{menuOpen ? "✕" : "Menu"}</span>
             </div>
