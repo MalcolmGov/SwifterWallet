@@ -346,14 +346,39 @@ input { font-family: inherit; }
   gap: 1px;
 }
 
-.brand-logo {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  box-shadow: 
-    0 4px 14px rgba(124, 58, 237, 0.4),
-    0 0 0 1.5px rgba(124, 58, 237, 0.2);
+.avatar-ring {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  padding: 2px;
+  background: linear-gradient(135deg, #7c3aed, #3b82f6, #06b6d4);
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3);
+  flex-shrink: 0;
+}
+
+.brand-avatar {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 50%;
   object-fit: cover;
+  display: block;
+}
+
+.avatar-online {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #22c55e;
+  border: 2.5px solid #050508;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+}
+
+.light .avatar-online {
+  border-color: #f8f9fb;
 }
 
 .brand-name {

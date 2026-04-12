@@ -258,7 +258,10 @@ export default function SwifterApp() {
         {/* Row 1: Brand + Actions */}
         <div className="dash-header-top">
           <div className="dash-header-brand">
-            <Image src="/icons/swifter-logo.png" alt="Swifter" width={40} height={40} className="brand-logo" />
+            <div className="avatar-ring">
+              <Image src="/icons/avatar-malcolm.jpg" alt="Malcolm" width={44} height={44} className="brand-avatar" />
+              <span className="avatar-online" />
+            </div>
             <div className="dash-header-brand-text">
               <span className="brand-name">Swifter<span className="brand-name-accent">Wallet</span></span>
               <p className="header-greeting">Good morning, <strong>Malcolm</strong> 👋</p>
