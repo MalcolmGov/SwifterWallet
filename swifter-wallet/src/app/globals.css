@@ -385,23 +385,25 @@ input { font-family: inherit; }
 }
 
 .brand-name {
-  font-size: 1.35rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  background: linear-gradient(135deg, #e0d4ff 0%, #a78bfa 40%, #7c3aed 100%);
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, #ffffff 0%, #c4b5fd 30%, #a78bfa 50%, #7c3aed 80%, #6d28d9 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  filter: drop-shadow(0 0 8px rgba(124, 58, 237, 0.35));
+  font-family: var(--font-inter), -apple-system, 'SF Pro Display', sans-serif;
+  font-style: italic;
 }
 .brand-dot {
-  background: linear-gradient(135deg, #7c3aed, #6366f1);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-size: 1.6rem;
+  -webkit-text-fill-color: #7c3aed;
+  font-size: 1.8rem;
+  font-style: normal;
+  font-weight: 900;
   line-height: 0;
-  vertical-align: -1px;
+  vertical-align: -2px;
+  filter: drop-shadow(0 0 6px rgba(124, 58, 237, 0.6));
 }
 
 .header-greeting {
