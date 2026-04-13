@@ -295,7 +295,34 @@ export default function SwifterApp() {
               <span className="avatar-online" />
             </div>
             <div className="dash-header-brand-text">
-              <span className="brand-name"><svg className="brand-atom" viewBox="0 0 32 32" width="22" height="22"><ellipse cx="16" cy="16" rx="14" ry="5" fill="none" stroke="url(#atomGrad)" strokeWidth="1.5" transform="rotate(-30 16 16)"/><ellipse cx="16" cy="16" rx="14" ry="5" fill="none" stroke="url(#atomGrad)" strokeWidth="1.5" transform="rotate(30 16 16)"/><ellipse cx="16" cy="16" rx="14" ry="5" fill="none" stroke="url(#atomGrad)" strokeWidth="1.5" transform="rotate(90 16 16)"/><circle cx="16" cy="16" r="2.5" fill="#a78bfa"/><defs><linearGradient id="atomGrad" x1="0" y1="0" x2="32" y2="32"><stop offset="0%" stopColor="#c4b5fd"/><stop offset="100%" stopColor="#7c3aed"/></linearGradient></defs></svg>SWIFTER</span>
+              <div className="brand-logo-wrap">
+                {/* Kinetic plasma orbit arcs */}
+                <svg className="brand-orbits" viewBox="0 0 44 44" width="34" height="34">
+                  <defs>
+                    <linearGradient id="plasmaA" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.9" />
+                      <stop offset="50%" stopColor="#a78bfa" stopOpacity="0.7" />
+                      <stop offset="100%" stopColor="#7c3aed" stopOpacity="0.3" />
+                    </linearGradient>
+                    <linearGradient id="plasmaB" x1="100%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#7c3aed" stopOpacity="0.8" />
+                      <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.4" />
+                    </linearGradient>
+                    <filter id="plasmaGlow">
+                      <feGaussianBlur stdDeviation="1.2" result="blur" />
+                      <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                    </filter>
+                  </defs>
+                  <ellipse cx="22" cy="22" rx="19" ry="6" fill="none" stroke="url(#plasmaA)" strokeWidth="0.8" transform="rotate(-35 22 22)" strokeDasharray="4 8" filter="url(#plasmaGlow)" className="orbit orbit-1" />
+                  <ellipse cx="22" cy="22" rx="19" ry="6" fill="none" stroke="url(#plasmaB)" strokeWidth="0.8" transform="rotate(25 22 22)" strokeDasharray="6 10" filter="url(#plasmaGlow)" className="orbit orbit-2" />
+                  <ellipse cx="22" cy="22" rx="19" ry="6" fill="none" stroke="url(#plasmaA)" strokeWidth="0.6" transform="rotate(80 22 22)" strokeDasharray="3 12" filter="url(#plasmaGlow)" className="orbit orbit-3" />
+                  {/* Energy core */}
+                  <circle cx="22" cy="22" r="3" fill="none" stroke="#06b6d4" strokeWidth="0.6" opacity="0.5" className="core-ring" />
+                  <circle cx="22" cy="22" r="1.8" fill="#a78bfa" opacity="0.9" />
+                  <circle cx="22" cy="22" r="1" fill="#ffffff" opacity="0.7" />
+                </svg>
+                <span className="brand-name">SWIFTER</span>
+              </div>
               <p className="header-greeting">Good morning, <strong>Malcolm</strong> 👋</p>
             </div>
           </div>

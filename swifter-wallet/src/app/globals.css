@@ -384,38 +384,100 @@ input { font-family: inherit; }
   border-color: #f8f9fb;
 }
 
+/* ─── Premium Holographic Brand ─────────────────────────────────── */
+.brand-logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-orbits {
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 4px rgba(6, 182, 212, 0.4));
+}
+
+/* Kinetic plasma scanning arcs */
+.orbit {
+  animation: orbit-scan 6s linear infinite;
+}
+.orbit-1 { animation-duration: 5s; }
+.orbit-2 { animation-duration: 7s; animation-direction: reverse; }
+.orbit-3 { animation-duration: 9s; }
+@keyframes orbit-scan {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -60; }
+}
+.core-ring {
+  animation: core-pulse 2s ease-in-out infinite;
+}
+@keyframes core-pulse {
+  0%, 100% { r: 3; opacity: 0.4; }
+  50% { r: 4; opacity: 0.7; }
+}
+
 .brand-name {
-  font-size: 1.4rem;
+  font-size: 1.45rem;
   font-weight: 900;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  background: linear-gradient(180deg, #ffffff 0%, #e0d4ff 25%, #a78bfa 55%, #7c3aed 100%);
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #e0d4ff 20%,
+    #c4b5fd 40%,
+    #a78bfa 60%,
+    #7c3aed 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  filter: drop-shadow(0 0 12px rgba(124, 58, 237, 0.5)) drop-shadow(0 0 24px rgba(124, 58, 237, 0.25));
   font-family: var(--font-inter), -apple-system, 'SF Pro Display', sans-serif;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.brand-atom {
-  filter: drop-shadow(0 0 6px rgba(167, 139, 250, 0.6));
-  animation: atom-spin 8s linear infinite;
-  flex-shrink: 0;
-}
-@keyframes atom-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  position: relative;
 }
 
-/* Light mode: deeper purple for contrast */
+/* 3D depth: bottom-up cyan illumination + purple ambient */
+.brand-name::after {
+  content: 'SWIFTER';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, rgba(6, 182, 212, 0.6) 0%, transparent 50%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: blur(0.5px);
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+/* Ambient glow behind text */
+.brand-logo-wrap::before {
+  content: '';
+  position: absolute;
+  left: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 120px;
+  height: 30px;
+  background: radial-gradient(ellipse, rgba(124, 58, 237, 0.2) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Light mode: deeper tones for contrast */
 .light .brand-name {
-  background: linear-gradient(180deg, #4c1d95 0%, #6d28d9 30%, #7c3aed 60%, #a78bfa 100%);
+  background: linear-gradient(180deg, #3b0764 0%, #5b21b6 25%, #7c3aed 50%, #6d28d9 100%);
   -webkit-background-clip: text;
   background-clip: text;
-  filter: drop-shadow(0 0 8px rgba(124, 58, 237, 0.3));
 }
+.light .brand-name::after {
+  background: linear-gradient(0deg, rgba(6, 182, 212, 0.4) 0%, transparent 50%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.light .brand-orbits {
+  filter: drop-shadow(0 0 3px rgba(124, 58, 237, 0.3));
+}
+.light .orbit { stroke-opacity: 0.8; }
 
 .header-greeting {
   font-size: 0.78rem;
