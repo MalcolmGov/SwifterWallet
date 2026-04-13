@@ -8,7 +8,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Swifter Wallet",
+  title: "Swifter",
   description: "Your modern digital wallet — send, receive, and manage your money.",
 };
 

@@ -295,7 +295,7 @@ export default function SwifterApp() {
               <span className="avatar-online" />
             </div>
             <div className="dash-header-brand-text">
-              <span className="brand-name">Swifter<span className="brand-name-accent">Wallet</span></span>
+              <span className="brand-name">Swifter<span className="brand-dot">.</span></span>
               <p className="header-greeting">Good morning, <strong>Malcolm</strong> 👋</p>
             </div>
           </div>

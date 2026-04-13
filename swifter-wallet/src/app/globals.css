@@ -385,13 +385,23 @@ input { font-family: inherit; }
 }
 
 .brand-name {
-  font-size: 1.15rem;
+  font-size: 1.35rem;
   font-weight: 800;
-  letter-spacing: -0.02em;
-  background: linear-gradient(135deg, #c4b5fd, #a78bfa);
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #e0d4ff 0%, #a78bfa 40%, #7c3aed 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+}
+.brand-dot {
+  background: linear-gradient(135deg, #7c3aed, #6366f1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 1.6rem;
+  line-height: 0;
+  vertical-align: -1px;
 }
 
 .header-greeting {
