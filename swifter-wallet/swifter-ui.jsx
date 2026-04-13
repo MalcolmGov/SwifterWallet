@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
+import SwifterAvatar from "./components/SwifterAvatar";
 
 // ─── 3D Icon Component ───────────────────────────────────────────────
 
@@ -41,6 +42,27 @@ const CONTACTS = [
   { id: "c2", name: "David K.", avatar: "DK", gradient: "linear-gradient(135deg, #3b82f6, #60a5fa)" },
   { id: "c3", name: "Thabo N.", avatar: "TN", gradient: "linear-gradient(135deg, #10b981, #34d399)" },
   { id: "c4", name: "Lisa P.", avatar: "LP", gradient: "linear-gradient(135deg, #f59e0b, #fbbf24)" },
+  { id: "c5", name: "James R.", avatar: "JR", gradient: "linear-gradient(135deg, #7c3aed, #a78bfa)" },
+];
+
+const SPENDING = [
+  { category: "Food & Dining", amount: 2340, color: "#f59e0b", pct: 32 },
+  { category: "Transport", amount: 1450, color: "#3b82f6", pct: 20 },
+  { category: "Shopping", amount: 1820, color: "#ec4899", pct: 25 },
+  { category: "Bills & Utilities", amount: 1690, color: "#10b981", pct: 23 },
+];
+
+const SAVINGS_GOALS = [
+  { id: "g1", name: "Holiday Fund", target: 15000, saved: 9750, accent: "#06b6d4", icon: "✈️" },
+  { id: "g2", name: "Emergency", target: 50000, saved: 32500, accent: "#10b981", icon: "🛡️" },
+  { id: "g3", name: "New Laptop", target: 25000, saved: 18200, accent: "#7c3aed", icon: "💻" },
+];
+
+const UPCOMING_BILLS = [
+  { id: "b1", name: "Netflix", amount: 199, due: "2026-04-15", icon: "🎬", accent: "#e50914" },
+  { id: "b2", name: "Rent", amount: 8500, due: "2026-04-25", icon: "🏠", accent: "#3b82f6" },
+  { id: "b3", name: "Electricity", amount: 850, due: "2026-04-20", icon: "⚡", accent: "#f59e0b" },
+  { id: "b4", name: "Internet", amount: 699, due: "2026-04-18", icon: "📡", accent: "#10b981" },
 ];
 
 const DEFAULT_SAVED_CARDS = [
@@ -168,6 +190,16 @@ export default function SwifterApp() {
   const [voiceOpen, setVoiceOpen] = useState(false);
   const [voiceText, setVoiceText] = useState("");
   const [voiceListening, setVoiceListening] = useState(false);
+  const [voiceStatus, setVoiceStatus] = useState("idle");
+  const [transcript, setTranscript] = useState("");
+  const [aiResponse, setAiResponse] = useState("");
+  const [actionLog, setActionLog] = useState([]);
+  const peerRef = useRef(null);
+  const audioRef = useRef(null);
+  const dcRef = useRef(null);
+  const analyserRef = useRef(null);
+  const animFrameRef = useRef(null);
+  const [voiceVolume, setVoiceVolume] = useState(0);
   const [pgScanning, setPgScanning] = useState(false);
   const [pgResult, setPgResult] = useState(null);
   const [notifChannel, setNotifChannel] = useState("whatsapp");
@@ -310,70 +342,166 @@ export default function SwifterApp() {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className={`action-bar ${slideUp ? "slide-visible delay-1" : ""}`}>
-        {[
-          { icon: ICON_MAP.send, label: "Send", action: () => navigate("send"), accent: "#7c3aed", bg: "rgba(124,58,237,0.12)" },
-          { icon: ICON_MAP["add-funds"], label: "Add Funds", action: () => navigate("addFunds"), accent: "#10b981", bg: "rgba(16,185,129,0.12)" },
-          { icon: ICON_MAP.transfer, label: "Transfer", action: () => navigate("send"), accent: "#3b82f6", bg: "rgba(59,130,246,0.12)" },
-          { icon: ICON_MAP.chatbanking, label: "WhatsApp", action: () => window.open("https://wa.me/27600000000?text=Hi%2C%20I'd%20like%20to%20manage%20my%20SwifterWallet", "_blank"), accent: "#25D366", bg: "rgba(37,211,102,0.12)" },
-        ].map((a, i) => (
-          <button key={i} onClick={a.action} className="action-pill" style={{ '--pill-accent': a.accent, '--pill-bg': a.bg }} id={`action-${a.label.toLowerCase().replace(' ', '-')}`}>
-            <div className="action-pill-icon" style={{ background: a.bg }}>
-              <Icon3D src={a.icon} alt={a.label} size={28} />
-            </div>
-            <span className="action-pill-label">{a.label}</span>
-            <span className="action-pill-chevron" style={{ color: a.accent }}>›</span>
-          </button>
-        ))}
+      {/* Quick Actions — 3D Orb Grid */}
+      <div className={`action-orbs ${slideUp ? "slide-visible delay-1" : ""}`}>
+        <h3 className="action-orbs-title">Quick Actions</h3>
+        <div className="action-orbs-grid">
+          {[
+            { label: "Send", action: () => navigate("send"), glow: "#7c3aed",
+              svg: <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg> },
+            { label: "Add Funds", action: () => navigate("addFunds"), glow: "#10b981",
+              svg: <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg> },
+            { label: "Transfer", action: () => navigate("send"), glow: "#3b82f6",
+              svg: <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 1L21 5L17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23L3 19L7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg> },
+            { label: "Chat Bank", action: () => window.open("https://wa.me/27600000000?text=Hi%2C%20I'd%20like%20to%20manage%20my%20SwifterWallet", "_blank"), glow: "#25D366",
+              svg: <svg width="30" height="30" viewBox="0 0 24 24" fill="#4ade80"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> },
+          ].map((a, i) => (
+            <button key={i} onClick={a.action} className="action-orb" style={{ '--orb-glow': a.glow }} id={`action-${a.label.toLowerCase().replace(' ', '-')}`}>
+              <div className="action-orb-glow" />
+              <div className="action-orb-sphere">
+                <div className="action-orb-sheen" />
+                {a.svg}
+              </div>
+              <span className="action-orb-label">{a.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Wallet Tiles */}
+      {/* Quick Pay Contacts */}
       <div className={`section ${slideUp ? "slide-visible delay-2" : ""}`}>
         <div className="section-header">
-          <h3 className="section-title">My Wallets</h3>
-          <button onClick={() => navigate("wallets")} className="section-link" id="see-all-wallets">See All</button>
+          <h3 className="section-title">Quick Pay</h3>
+          <button className="section-link" id="manage-contacts">Manage</button>
         </div>
-        <div className="wallet-tiles">
-          {WALLETS.map((w, i) => {
-            const total = WALLETS.reduce((sum, wl) => sum + wl.balance, 0);
-            const pct = Math.round((w.balance / total) * 100);
+        <div className="quick-pay-row">
+          {CONTACTS.map((c) => (
+            <button key={c.id} onClick={() => navigate("send")} className="quick-pay-item" id={`pay-${c.id}`}>
+              <div className="quick-pay-avatar" style={{ background: c.gradient }}>
+                <span>{c.avatar}</span>
+              </div>
+              <span className="quick-pay-name">{c.name.split(" ")[0]}</span>
+            </button>
+          ))}
+          <button className="quick-pay-item quick-pay-add" onClick={() => navigate("send")}>
+            <div className="quick-pay-avatar quick-pay-add-avatar">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </div>
+            <span className="quick-pay-name">Add</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Spending Insights */}
+      <div className={`section ${slideUp ? "slide-visible delay-3" : ""}`}>
+        <div className="section-header">
+          <h3 className="section-title">Spending Insights</h3>
+          <span className="section-subtitle">This month</span>
+        </div>
+        <div className="spending-card">
+          <div className="spending-donut-wrap">
+            <svg viewBox="0 0 36 36" className="spending-donut">
+              {(() => {
+                let offset = 0;
+                return SPENDING.map((s, i) => {
+                  const dashLen = s.pct;
+                  const el = (
+                    <circle key={i} cx="18" cy="18" r="15.5" fill="none"
+                      stroke={s.color} strokeWidth="3.5" strokeLinecap="round"
+                      strokeDasharray={`${dashLen} ${100 - dashLen}`}
+                      strokeDashoffset={-offset}
+                      style={{ filter: `drop-shadow(0 0 3px ${s.color})` }} />
+                  );
+                  offset += dashLen;
+                  return el;
+                });
+              })()}
+            </svg>
+            <div className="spending-donut-center">
+              <span className="spending-donut-total">{formatCurrency(SPENDING.reduce((s, c) => s + c.amount, 0))}</span>
+              <span className="spending-donut-label">Total</span>
+            </div>
+          </div>
+          <div className="spending-legend">
+            {SPENDING.map((s, i) => (
+              <div key={i} className="spending-legend-item">
+                <span className="spending-dot" style={{ background: s.color }} />
+                <span className="spending-cat">{s.category}</span>
+                <span className="spending-amt">{formatCurrency(s.amount)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Savings Goals */}
+      <div className={`section ${slideUp ? "slide-visible delay-4" : ""}`}>
+        <div className="section-header">
+          <h3 className="section-title">Savings Goals</h3>
+          <button className="section-link" id="add-goal">+ New</button>
+        </div>
+        <div className="goals-row">
+          {SAVINGS_GOALS.map((g) => {
+            const pct = Math.round((g.saved / g.target) * 100);
             return (
-              <button key={w.id} onClick={() => { setActiveWallet(w); navigate("wallets"); }} className={`wallet-tile ${i === 0 ? "wallet-tile-featured" : ""}`} style={{ '--accent': w.accent }} id={`wallet-${w.id}`}>
-                <div className="wallet-tile-glow" style={{ background: w.accent }} />
-                <div className="wallet-tile-accent" style={{ borderColor: w.accent }} />
-                <div className="wallet-tile-content">
-                  <div className="wallet-tile-header">
-                    <div className="wallet-tile-ring" style={{ '--accent': w.accent, '--pct': pct }}>
-                      <svg viewBox="0 0 36 36" className="wallet-ring-svg">
-                        <circle cx="18" cy="18" r="15.5" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3" />
-                        <circle cx="18" cy="18" r="15.5" fill="none" stroke={w.accent} strokeWidth="3" strokeLinecap="round"
-                          strokeDasharray={`${pct} ${100 - pct}`} strokeDashoffset="25"
-                          style={{ filter: `drop-shadow(0 0 4px ${w.accent})` }} />
-                      </svg>
-                      <span className="wallet-ring-pct">{pct}%</span>
-                    </div>
-                    <div className="wallet-tile-info">
-                      <span className="wallet-tile-type" style={{ color: w.accent }}>{w.type}</span>
-                      <p className="wallet-tile-name">{w.name}</p>
-                    </div>
-                  </div>
-                  <div className="wallet-tile-footer">
-                    <p className="wallet-tile-balance">
-                      {balanceVisible ? formatCurrency(w.balance) : "R•••••"}
-                    </p>
-                    <span className="wallet-tile-arrow" style={{ color: w.accent }}>→</span>
-                  </div>
+              <div key={g.id} className="goal-card" style={{ '--goal-accent': g.accent }}>
+                <div className="goal-ring-wrap">
+                  <svg viewBox="0 0 36 36" className="goal-ring-svg">
+                    <circle cx="18" cy="18" r="15.5" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3" />
+                    <circle cx="18" cy="18" r="15.5" fill="none" stroke={g.accent} strokeWidth="3" strokeLinecap="round"
+                      strokeDasharray={`${pct} ${100 - pct}`} strokeDashoffset="25"
+                      style={{ filter: `drop-shadow(0 0 4px ${g.accent})`, transition: 'stroke-dasharray 1s ease' }} />
+                  </svg>
+                  <span className="goal-ring-icon">{g.icon}</span>
                 </div>
-                <div className="wallet-tile-shimmer" />
-              </button>
+                <div className="goal-info">
+                  <span className="goal-name">{g.name}</span>
+                  <div className="goal-bar-wrap">
+                    <div className="goal-bar-bg">
+                      <div className="goal-bar-fill" style={{ width: `${pct}%`, background: g.accent, boxShadow: `0 0 8px ${g.accent}` }} />
+                    </div>
+                    <span className="goal-pct" style={{ color: g.accent }}>{pct}%</span>
+                  </div>
+                  <span className="goal-amounts">{formatCurrency(g.saved)} / {formatCurrency(g.target)}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Upcoming Bills */}
+      <div className={`section ${slideUp ? "slide-visible delay-5" : ""}`}>
+        <div className="section-header">
+          <h3 className="section-title">Upcoming Bills</h3>
+          <button className="section-link" id="all-bills">See All</button>
+        </div>
+        <div className="bills-list">
+          {UPCOMING_BILLS.map((b) => {
+            const dueDate = new Date(b.due);
+            const today = new Date();
+            const daysLeft = Math.max(0, Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24)));
+            return (
+              <div key={b.id} className="bill-row" style={{ '--bill-accent': b.accent }}>
+                <div className="bill-icon-wrap">
+                  <span className="bill-emoji">{b.icon}</span>
+                </div>
+                <div className="bill-info">
+                  <span className="bill-name">{b.name}</span>
+                  <span className="bill-due">{daysLeft === 0 ? "Due today" : `Due in ${daysLeft} days`}</span>
+                </div>
+                <div className="bill-right">
+                  <span className="bill-amount">{formatCurrency(b.amount)}</span>
+                  <button className="bill-pay-btn" style={{ background: b.accent }}>Pay</button>
+                </div>
+              </div>
             );
           })}
         </div>
       </div>
 
       {/* Recent Transactions */}
-      <div className={`section last-section ${slideUp ? "slide-visible delay-3" : ""}`}>
+      <div className={`section last-section ${slideUp ? "slide-visible delay-6" : ""}`}>
         <div className="section-header">
           <h3 className="section-title">Recent Transactions</h3>
           <button onClick={() => navigate("history")} className="section-link" id="see-all-tx">See All</button>
@@ -403,48 +531,219 @@ export default function SwifterApp() {
     </div>
   );
 
-  // ─── Voice Co-Pilot Overlay ───────────────────────────────────────
+  // ─── Voice Co-Pilot Logic (parent scope) ─────────────────────────
 
-  const VoiceOverlay = () => {
-    useEffect(() => {
-      if (!voiceListening) return;
-      const phrases = ["Listening...", "Send R200 to savings...", "Processing command..."];
-      let i = 0;
-      const iv = setInterval(() => {
-        setVoiceText(phrases[i % phrases.length]);
-        i++;
-        if (i >= phrases.length) { clearInterval(iv); setVoiceListening(false); setVoiceText("✅ R200 transferred to Savings"); }
-      }, 1800);
-      return () => clearInterval(iv);
-    }, [voiceListening]);
-
-    if (!voiceOpen) return null;
-    return (
-      <div className="voice-overlay" onClick={() => setVoiceOpen(false)}>
-        <div className="voice-panel" onClick={(e) => e.stopPropagation()}>
-          <button onClick={() => setVoiceOpen(false)} className="voice-close">✕</button>
-          <div className="voice-icon-ring">
-            <div className={`voice-pulse ${voiceListening ? "voice-active" : ""}`} />
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
-            </svg>
-          </div>
-          <h3 className="voice-title">Voice Co-Pilot</h3>
-          <p className="voice-subtitle">{voiceText || "Tap mic to start"}</p>
-          <div className="voice-waveform">
-            {[...Array(12)].map((_, i) => <div key={i} className={`voice-bar ${voiceListening ? "voice-bar-active" : ""}`} style={{ animationDelay: `${i * 0.08}s` }} />)}
-          </div>
-          <div className="voice-suggestions">
-            <p className="voice-suggest-label">Try saying:</p>
-            {["Send R500 to savings", "What's my balance?", "Show last transactions"].map((s, i) => (
-              <button key={i} className="voice-suggest-chip" onClick={() => { setVoiceText(s); setVoiceListening(true); }}>{s}</button>
-            ))}
-          </div>
-          {!voiceListening && <button onClick={() => { setVoiceListening(true); setVoiceText(""); }} className="primary-btn primary-violet" style={{ marginTop: "1rem", width: "100%" }}>Tap to Speak</button>}
-        </div>
-      </div>
-    );
+  const voiceStatusLabels = {
+    idle: "Tap mic to start",
+    connecting: "Connecting...",
+    listening: "Listening...",
+    thinking: "Processing...",
+    speaking: "Speaking...",
+    error: "Connection error",
   };
+
+  const handleRealtimeEvent = useCallback((event) => {
+    switch (event.type) {
+      case "input_audio_buffer.speech_started":
+        setVoiceStatus("listening");
+        break;
+      case "input_audio_buffer.speech_stopped":
+        setVoiceStatus("thinking");
+        break;
+      case "conversation.item.input_audio_transcription.completed":
+        setTranscript(event.transcript || "");
+        break;
+      case "response.audio_transcript.delta":
+        setAiResponse(prev => prev + (event.delta || ""));
+        setVoiceStatus("speaking");
+        break;
+      case "response.audio_transcript.done":
+        setVoiceStatus("listening");
+        break;
+      case "response.done":
+        if (event.response?.output) {
+          event.response.output.forEach(item => {
+            if (item.type === "function_call") {
+              voiceExecuteFunction(item.name, JSON.parse(item.arguments || "{}"), item.call_id);
+            }
+          });
+        }
+        setVoiceStatus("listening");
+        break;
+      case "error":
+        console.error("Realtime error:", event.error);
+        setVoiceStatus("error");
+        setAiResponse(`Error: ${event.error?.message || "Unknown error"}`);
+        break;
+    }
+  }, []);
+
+  const voiceExecuteFunction = useCallback((name, args, callId) => {
+    let result = {};
+    switch (name) {
+      case "send_money":
+        result = { success: true, message: `Sent R${args.amount?.toFixed(2)} to ${args.recipient}` };
+        setActionLog(prev => [...prev, `💸 Sent R${args.amount} to ${args.recipient}`]);
+        setToastMsg(`R${args.amount?.toFixed(2)} sent to ${args.recipient}`);
+        break;
+      case "transfer_funds":
+        result = { success: true, message: `Transferred R${args.amount?.toFixed(2)} from ${args.from_wallet} to ${args.to_wallet}` };
+        setActionLog(prev => [...prev, `🔄 R${args.amount} ${args.from_wallet} → ${args.to_wallet}`]);
+        setToastMsg(`R${args.amount?.toFixed(2)} transferred`);
+        break;
+      case "add_funds":
+        result = { success: true, message: `Added R${args.amount?.toFixed(2)}` };
+        setActionLog(prev => [...prev, `➕ Added R${args.amount}`]);
+        navigate("addFunds");
+        break;
+      case "buy_airtime":
+        result = { success: true, message: `R${args.amount} airtime for ${args.phone_number}` };
+        setActionLog(prev => [...prev, `📱 R${args.amount} airtime → ${args.phone_number}`]);
+        setToastMsg(`R${args.amount} airtime sent`);
+        break;
+      case "pay_bill":
+        result = { success: true, message: `${args.bill_name} paid` };
+        setActionLog(prev => [...prev, `📄 Paid ${args.bill_name}`]);
+        setToastMsg(`${args.bill_name} paid`);
+        break;
+      case "check_balance":
+        const balances = { main: 24850, savings: 12420.5, business: 8390.75, all: 45661.25 };
+        const w = args.wallet || "all";
+        result = { balance: balances[w], wallet: w, formatted: `R${balances[w]?.toLocaleString("en-ZA", { minimumFractionDigits: 2 })}` };
+        break;
+      case "navigate_screen":
+        navigate(args.screen);
+        result = { success: true, message: `Navigated to ${args.screen}` };
+        setActionLog(prev => [...prev, `📱 Opened ${args.screen}`]);
+        break;
+      default:
+        result = { error: "Unknown function" };
+    }
+    if (dcRef.current?.readyState === "open") {
+      dcRef.current.send(JSON.stringify({
+        type: "conversation.item.create",
+        item: { type: "function_call_output", call_id: callId, output: JSON.stringify(result) },
+      }));
+      dcRef.current.send(JSON.stringify({ type: "response.create" }));
+    }
+  }, []);
+
+  const stopVoiceSession = useCallback(() => {
+    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    analyserRef.current = null;
+    setVoiceVolume(0);
+    if (peerRef.current) {
+      peerRef.current.getSenders().forEach(s => { if (s.track) s.track.stop(); });
+      peerRef.current.close();
+      peerRef.current = null;
+    }
+    if (audioRef.current) {
+      audioRef.current.srcObject = null;
+      audioRef.current.remove();
+      audioRef.current = null;
+    }
+    dcRef.current = null;
+    setVoiceStatus("idle");
+    setVoiceListening(false);
+  }, []);
+
+  const startVoiceSession = useCallback(async () => {
+    try {
+      setVoiceStatus("connecting");
+      setTranscript("");
+      setAiResponse("");
+      setActionLog([]);
+
+      const tokenRes = await fetch("/api/voice-session", { method: "POST" });
+      if (!tokenRes.ok) throw new Error(`API ${tokenRes.status}: ${await tokenRes.text()}`);
+      const sessionData = await tokenRes.json();
+      const ephemeralKey = sessionData.client_secret?.value;
+      if (!ephemeralKey) throw new Error("No ephemeral key");
+
+      const pc = new RTCPeerConnection();
+      peerRef.current = pc;
+
+      const audioEl = document.createElement("audio");
+      audioEl.autoplay = true;
+      audioEl.playsInline = true;
+      document.body.appendChild(audioEl);
+      audioRef.current = audioEl;
+      pc.ontrack = (e) => {
+        audioEl.srcObject = e.streams[0];
+        audioEl.play().catch(() => {});
+        // Set up audio analyser for volume detection
+        try {
+          const actx = new (window.AudioContext || window.webkitAudioContext)();
+          const source = actx.createMediaStreamSource(e.streams[0]);
+          const analyser = actx.createAnalyser();
+          analyser.fftSize = 256;
+          source.connect(analyser);
+          analyserRef.current = analyser;
+          const dataArray = new Uint8Array(analyser.frequencyBinCount);
+          const tick = () => {
+            analyser.getByteFrequencyData(dataArray);
+            const avg = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+            setVoiceVolume(Math.min(1, avg / 80));
+            animFrameRef.current = requestAnimationFrame(tick);
+          };
+          tick();
+        } catch (e) { console.warn("Audio analyser failed:", e); }
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      pc.addTrack(stream.getTracks()[0], stream);
+
+      pc.oniceconnectionstatechange = () => {
+        if (pc.iceConnectionState === "failed" || pc.iceConnectionState === "disconnected") {
+          setVoiceStatus("error");
+          setAiResponse("Connection lost.");
+        }
+      };
+
+      const dc = pc.createDataChannel("oai-events");
+      dcRef.current = dc;
+
+      dc.onopen = () => {
+        setVoiceStatus("listening");
+        setTimeout(() => {
+          if (dc.readyState === "open") {
+            dc.send(JSON.stringify({
+              type: "conversation.item.create",
+              item: { type: "message", role: "user", content: [{ type: "input_text", text: "Hi! Please greet me by name (Malcolm) and briefly tell me what you can help with." }] },
+            }));
+            dc.send(JSON.stringify({ type: "response.create" }));
+          }
+        }, 800);
+      };
+
+      dc.onmessage = (e) => {
+        try { handleRealtimeEvent(JSON.parse(e.data)); } catch (err) { console.error("Parse:", err); }
+      };
+
+      dc.onerror = () => { setVoiceStatus("error"); setAiResponse("Data channel error."); };
+
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+
+      const sdpRes = await fetch("https://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2025-06-03", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${ephemeralKey}`, "Content-Type": "application/sdp" },
+        body: offer.sdp,
+      });
+
+      if (!sdpRes.ok) throw new Error(`SDP ${sdpRes.status}`);
+      await pc.setRemoteDescription({ type: "answer", sdp: await sdpRes.text() });
+
+    } catch (err) {
+      console.error("Voice error:", err);
+      setVoiceStatus("error");
+      setAiResponse(err.message || "Failed to connect");
+    }
+  }, [handleRealtimeEvent]);
+
+  useEffect(() => {
+    return () => { if (peerRef.current) stopVoiceSession(); };
+  }, [stopVoiceSession]);
 
   // ─── Toast Notification (SmartSendr) ──────────────────────────────
 
@@ -1208,7 +1507,67 @@ export default function SwifterApp() {
           {screen === "manageCards" && <ManageCardsScreen />}
         </div>
         {!["send", "addFunds", "manageCards"].includes(screen) && <TabBar />}
-        <VoiceOverlay />
+        {/* Voice Co-Pilot Overlay */}
+        {voiceOpen && (
+          <div className="voice-overlay" onClick={() => { stopVoiceSession(); setVoiceOpen(false); }}>
+            <div className="voice-panel" onClick={(e) => e.stopPropagation()}>
+              <button onClick={() => { stopVoiceSession(); setVoiceOpen(false); }} className="voice-close">✕</button>
+              {/* 60fps Canvas Avatar */}
+              <div className="voice-avatar-wrap">
+                <SwifterAvatar status={voiceStatus} volume={voiceVolume} size={150} />
+              </div>
+              <h3 className="voice-title">Swifter</h3>
+              <p className="voice-status-badge" data-status={voiceStatus}>{voiceStatusLabels[voiceStatus]}</p>
+              {/* Waveform */}
+              <div className="voice-waveform">
+                {[...Array(16)].map((_, i) => (
+                  <div key={i} className={`voice-bar ${voiceStatus === "speaking" ? "voice-bar-active" : voiceStatus === "listening" ? "voice-bar-listen" : ""}`}
+                    style={{ animationDelay: `${i * 0.06}s`, height: voiceStatus === "speaking" ? `${6 + voiceVolume * 22 * Math.sin(i * 0.8)}px` : undefined }} />
+                ))}
+              </div>
+              {transcript && (
+                <div className="voice-transcript">
+                  <span className="voice-transcript-label">You said:</span>
+                  <p className="voice-transcript-text">{transcript}</p>
+                </div>
+              )}
+              {aiResponse && (
+                <div className="voice-ai-response">
+                  <span className="voice-transcript-label">Swifter:</span>
+                  <p className="voice-transcript-text">{aiResponse}</p>
+                </div>
+              )}
+              {actionLog.length > 0 && (
+                <div className="voice-action-log">
+                  {actionLog.map((log, i) => (
+                    <div key={i} className="voice-action-item">{log}</div>
+                  ))}
+                </div>
+              )}
+              {voiceStatus === "idle" && (
+                <div className="voice-suggestions">
+                  <p className="voice-suggest-label">Try saying:</p>
+                  {["Send R500 to Sarah", "What's my balance?", "Pay my Netflix bill", "Buy R29 airtime for 082 123 4567"].map((s, i) => (
+                    <button key={i} className="voice-suggest-chip" onClick={() => { setTranscript(s); startVoiceSession(); }}>{s}</button>
+                  ))}
+                </div>
+              )}
+              {voiceStatus === "idle" ? (
+                <button onClick={startVoiceSession} className="primary-btn primary-violet" style={{ marginTop: "1rem", width: "100%" }}>
+                  🎙️ Start Conversation
+                </button>
+              ) : voiceStatus === "connecting" ? (
+                <button disabled className="primary-btn" style={{ marginTop: "1rem", width: "100%", opacity: 0.5 }}>
+                  Connecting...
+                </button>
+              ) : (
+                <button onClick={stopVoiceSession} className="primary-btn primary-red" style={{ marginTop: "1rem", width: "100%" }}>
+                  ⬛ End Session
+                </button>
+              )}
+            </div>
+          </div>
+        )}
         {toastMsg && <div className="smartsendr-toast">{toastMsg}</div>}
       </div>
     </PhoneFrame>
