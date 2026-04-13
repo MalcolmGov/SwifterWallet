@@ -295,7 +295,7 @@ export default function SwifterApp() {
               <span className="avatar-online" />
             </div>
             <div className="dash-header-brand-text">
-              <span className="brand-name">Swifter<span className="brand-dot">.</span></span>
+              <span className="brand-name"><svg className="brand-atom" viewBox="0 0 32 32" width="22" height="22"><ellipse cx="16" cy="16" rx="14" ry="5" fill="none" stroke="url(#atomGrad)" strokeWidth="1.5" transform="rotate(-30 16 16)"/><ellipse cx="16" cy="16" rx="14" ry="5" fill="none" stroke="url(#atomGrad)" strokeWidth="1.5" transform="rotate(30 16 16)"/><ellipse cx="16" cy="16" rx="14" ry="5" fill="none" stroke="url(#atomGrad)" strokeWidth="1.5" transform="rotate(90 16 16)"/><circle cx="16" cy="16" r="2.5" fill="#a78bfa"/><defs><linearGradient id="atomGrad" x1="0" y1="0" x2="32" y2="32"><stop offset="0%" stopColor="#c4b5fd"/><stop offset="100%" stopColor="#7c3aed"/></linearGradient></defs></svg>SWIFTER</span>
               <p className="header-greeting">Good morning, <strong>Malcolm</strong> 👋</p>
             </div>
           </div>
@@ -523,11 +523,15 @@ export default function SwifterApp() {
       </div>
 
       {/* Voice Co-Pilot FAB */}
-      <button onClick={() => { setVoiceOpen(true); setVoiceText(""); setVoiceListening(true); }} className="fab voice-fab" id="voice-fab">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
-        </svg>
-      </button>
+      <div className="voice-fab-container">
+        <span className="voice-fab-ring" />
+        <span className="voice-fab-ring voice-fab-ring-2" />
+        <button onClick={() => { setVoiceOpen(true); setVoiceText(""); setVoiceListening(true); }} className="fab voice-fab" id="voice-fab">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </button>
+      </div>
     </div>
   );
 

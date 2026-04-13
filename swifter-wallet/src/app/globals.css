@@ -385,25 +385,36 @@ input { font-family: inherit; }
 }
 
 .brand-name {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 900;
-  letter-spacing: -0.04em;
-  background: linear-gradient(135deg, #ffffff 0%, #c4b5fd 30%, #a78bfa 50%, #7c3aed 80%, #6d28d9 100%);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: linear-gradient(180deg, #ffffff 0%, #e0d4ff 25%, #a78bfa 55%, #7c3aed 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  filter: drop-shadow(0 0 8px rgba(124, 58, 237, 0.35));
+  filter: drop-shadow(0 0 12px rgba(124, 58, 237, 0.5)) drop-shadow(0 0 24px rgba(124, 58, 237, 0.25));
   font-family: var(--font-inter), -apple-system, 'SF Pro Display', sans-serif;
-  font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
-.brand-dot {
-  -webkit-text-fill-color: #7c3aed;
-  font-size: 1.8rem;
-  font-style: normal;
-  font-weight: 900;
-  line-height: 0;
-  vertical-align: -2px;
-  filter: drop-shadow(0 0 6px rgba(124, 58, 237, 0.6));
+.brand-atom {
+  filter: drop-shadow(0 0 6px rgba(167, 139, 250, 0.6));
+  animation: atom-spin 8s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes atom-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Light mode: deeper purple for contrast */
+.light .brand-name {
+  background: linear-gradient(180deg, #4c1d95 0%, #6d28d9 30%, #7c3aed 60%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 0 8px rgba(124, 58, 237, 0.3));
 }
 
 .header-greeting {
@@ -2951,7 +2962,34 @@ input { font-family: inherit; }
 
 /* ─── Voice Co-Pilot FAB ────────────────────────────────────────── */
 
+.voice-fab-container {
+  position: fixed;
+  bottom: 5.5rem;
+  right: calc(50% - 215px + 1.5rem);
+  z-index: 100;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.voice-fab-ring {
+  position: absolute;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid rgba(124, 58, 237, 0.5);
+  animation: fab-pulse 2s ease-out infinite;
+}
+.voice-fab-ring-2 {
+  animation-delay: 0.6s;
+}
+@keyframes fab-pulse {
+  0% { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
 .voice-fab {
+  position: relative;
   background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%) !important;
   box-shadow: 0 6px 24px rgba(124, 58, 237, 0.4) !important;
 }
