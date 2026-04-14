@@ -89,6 +89,42 @@ const DEFAULT_SAVED_CARDS = [
   { id: "card2", brand: "Mastercard", last4: "8834", expiry: "03/27", holder: "Malcolm Govender", gradient: "linear-gradient(135deg, #b91c1c 0%, #ef4444 50%, #f87171 100%)" },
 ];
 
+// ─── Notification Data ───────────────────────────────────────────────
+
+const NOTIFICATIONS = [
+  { id: "n1", type: "payment", title: "Payment Received", body: "R1,500 from Thabo Nkosi", time: "2m ago", read: false, icon: "💸" },
+  { id: "n2", type: "promo", title: "5% Cashback at Woolworths", body: "Earn cashback this week at Woolworths. Valid until Sunday.", time: "1h ago", read: false, icon: "🎁" },
+  { id: "n3", type: "tip", title: "Did you know?", body: "Pay by voice — just say \"Pay Sarah R100\"", time: "3h ago", read: false, icon: "💡" },
+  { id: "n4", type: "system", title: "Biometric Login Available", body: "Secure every transaction with Face ID or fingerprint", time: "Yesterday", read: true, icon: "🔐" },
+  { id: "n5", type: "payment", title: "Salary Deposited", body: "R42,000 from Accenture SA credited to Main Wallet", time: "Yesterday", read: true, icon: "💼" },
+  { id: "n6", type: "tip", title: "Spending Insight", body: "You spent R2,340 on Food & Dining this month — 32% of your budget", time: "2 days ago", read: true, icon: "📊" },
+];
+
+// ─── Onboarding Slides ───────────────────────────────────────────────
+
+const ONBOARDING_SLIDES = [
+  {
+    emoji: "✨",
+    title: "Welcome to Swifter",
+    desc: "Your smart, secure digital wallet for the modern South African lifestyle.",
+  },
+  {
+    emoji: "🎙️",
+    title: "Pay by Voice",
+    desc: "Just say \"Pay Sarah R100\" and Swifter handles the rest — in English, Zulu, Afrikaans, and more.",
+  },
+  {
+    emoji: "🔐",
+    title: "Stay Secure",
+    desc: "Biometric authentication protects every transaction. PayGuard™ monitors for fraud in real time.",
+  },
+  {
+    emoji: "🚀",
+    title: "You're All Set",
+    desc: "Explore your dashboard, manage your wallets, and experience the future of payments.",
+  },
+];
+
 // ─── Icon map ────────────────────────────────────────────────────────
 
 const ICON_MAP = {
@@ -329,6 +365,28 @@ export default function SwifterApp() {
   // Resolves the Promise returned to the voice agent when biometric completes
   const voicePendingRef = useRef(null);
 
+  // ── Notification center
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState(NOTIFICATIONS);
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  // ── Onboarding carousel (first-visit only)
+  const [showOnboarding, setShowOnboarding] = useState(() =>
+    typeof window !== "undefined" ? !localStorage.getItem("swifter_onboarded") : true
+  );
+  const [onboardingStep, setOnboardingStep] = useState(0);
+
+  // ── Feature discovery tooltips (shown once after onboarding)
+  const [showTooltips, setShowTooltips] = useState(false);
+  const [tooltipStep, setTooltipStep] = useState(0);
+
+  // ── Post-transaction feedback survey
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [feedbackComment, setFeedbackComment] = useState("");
+  const [feedbackSent, setFeedbackSent] = useState(false);
+  const txCountRef = useRef(0);
+
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 1400);
     return () => clearTimeout(t);
@@ -453,9 +511,12 @@ export default function SwifterApp() {
             <button onClick={() => setDark(!dark)} className="header-btn" id="theme-toggle">
               {dark ? "☀️" : "🌙"}
             </button>
-            <button className="header-btn notification-btn" id="notifications-btn">
-              🔔
-              <span className="notification-dot" />
+            <button className="header-btn notification-btn" id="notifications-btn" onClick={() => setNotifOpen(true)}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+              </svg>
+              {unreadCount > 0 && <span className="notif-badge">{unreadCount}</span>}
             </button>
           </div>
         </div>
@@ -1256,6 +1317,13 @@ export default function SwifterApp() {
           biometricEnabled={biometricEnabled}
           biometricRegistered={biometricRegistered}
           txThreshold={txThreshold}
+          onTransactionComplete={() => {
+            txCountRef.current += 1;
+            // Show feedback survey every other transaction (realistic cadence)
+            if (txCountRef.current % 2 === 0) {
+              setTimeout(() => setShowFeedback(true), 1600);
+            }
+          }}
         />
       )}
     </div>
@@ -2212,6 +2280,268 @@ export default function SwifterApp() {
             <div className="premium-toast-bar" />
           </div>
         )}
+
+        {/* ── Notification Center ──────────────────────────────────── */}
+        {notifOpen && (
+          <div className="notif-overlay" onClick={() => setNotifOpen(false)}>
+            <div className="notif-panel" onClick={(e) => e.stopPropagation()}>
+              <div className="notif-panel-header">
+                <h3 className="notif-panel-title">Notifications</h3>
+                <div className="notif-panel-actions">
+                  {unreadCount > 0 && (
+                    <button
+                      className="notif-mark-all"
+                      onClick={() => setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))}
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                  <button className="voice-close" onClick={() => setNotifOpen(false)}>✕</button>
+                </div>
+              </div>
+              <div className="notif-list">
+                {notifications.map((notif) => (
+                  <div
+                    key={notif.id}
+                    className={`notif-item ${notif.read ? "notif-read" : "notif-unread"}`}
+                    onClick={() =>
+                      setNotifications((prev) =>
+                        prev.map((n) => n.id === notif.id ? { ...n, read: true } : n)
+                      )
+                    }
+                  >
+                    <div className={`notif-icon-wrap notif-icon-${notif.type}`}>{notif.icon}</div>
+                    <div className="notif-content">
+                      <p className="notif-title">{notif.title}</p>
+                      <p className="notif-body">{notif.body}</p>
+                      <p className="notif-time">{notif.time}</p>
+                    </div>
+                    {!notif.read && <span className="notif-unread-dot" />}
+                    <button
+                      className="notif-dismiss-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setNotifications((prev) => prev.filter((n) => n.id !== notif.id));
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+                {notifications.length === 0 && (
+                  <div className="notif-empty">
+                    <span className="notif-empty-icon">🔔</span>
+                    <p>All caught up!</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Welcome Onboarding Carousel ──────────────────────────── */}
+        {showOnboarding && !loading && (
+          <div className="onboarding-overlay">
+            <div className="onboarding-bg-glow" />
+            <button
+              className="onboarding-skip"
+              onClick={() => {
+                setShowOnboarding(false);
+                localStorage.setItem("swifter_onboarded", "1");
+                if (!localStorage.getItem("swifter_tooltips_seen")) {
+                  setTimeout(() => { setShowTooltips(true); setTooltipStep(0); }, 500);
+                }
+              }}
+            >
+              Skip
+            </button>
+            <div className="onboarding-slides-viewport">
+              <div
+                className="onboarding-slides"
+                style={{ transform: `translateX(-${onboardingStep * 100}%)` }}
+              >
+                {ONBOARDING_SLIDES.map((slide, i) => (
+                  <div key={i} className="onboarding-slide">
+                    <div className="onboarding-emoji">{slide.emoji}</div>
+                    <h2 className="onboarding-title">{slide.title}</h2>
+                    <p className="onboarding-body">{slide.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="onboarding-dots">
+              {ONBOARDING_SLIDES.map((_, i) => (
+                <span
+                  key={i}
+                  className={`onboarding-dot ${i === onboardingStep ? "onboarding-dot-active" : ""}`}
+                  onClick={() => setOnboardingStep(i)}
+                />
+              ))}
+            </div>
+            {onboardingStep < ONBOARDING_SLIDES.length - 1 ? (
+              <button
+                className="primary-btn primary-violet onboarding-next"
+                onClick={() => setOnboardingStep((s) => s + 1)}
+              >
+                Next
+              </button>
+            ) : (
+              <button
+                className="primary-btn primary-violet onboarding-next"
+                onClick={() => {
+                  setShowOnboarding(false);
+                  localStorage.setItem("swifter_onboarded", "1");
+                  if (!localStorage.getItem("swifter_tooltips_seen")) {
+                    setTimeout(() => { setShowTooltips(true); setTooltipStep(0); }, 500);
+                  }
+                }}
+              >
+                Get Started →
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* ── Feature Discovery Tooltips ───────────────────────────── */}
+        {showTooltips && !loading && !showOnboarding && screen === "dashboard" && (
+          <div className="tooltip-overlay">
+            {tooltipStep === 0 && (
+              <div className="tooltip-bubble tooltip-voice">
+                <p className="tooltip-text">🎙️ Talk to Swifter — say &ldquo;Pay Sarah R100&rdquo;</p>
+                <div className="tooltip-actions">
+                  <button
+                    className="tooltip-skip"
+                    onClick={() => {
+                      setShowTooltips(false);
+                      localStorage.setItem("swifter_tooltips_seen", "1");
+                    }}
+                  >
+                    Skip tour
+                  </button>
+                  <button className="tooltip-next" onClick={() => setTooltipStep(1)}>Next →</button>
+                </div>
+                <div className="tooltip-arrow tooltip-arrow-down" />
+              </div>
+            )}
+            {tooltipStep === 1 && (
+              <div className="tooltip-bubble tooltip-quickpay">
+                <p className="tooltip-text">⚡ Tap a contact for an instant payment</p>
+                <div className="tooltip-actions">
+                  <button
+                    className="tooltip-skip"
+                    onClick={() => {
+                      setShowTooltips(false);
+                      localStorage.setItem("swifter_tooltips_seen", "1");
+                    }}
+                  >
+                    Skip
+                  </button>
+                  <button className="tooltip-next" onClick={() => setTooltipStep(2)}>Next →</button>
+                </div>
+                <div className="tooltip-arrow tooltip-arrow-up" />
+              </div>
+            )}
+            {tooltipStep === 2 && (
+              <div className="tooltip-bubble tooltip-insights">
+                <p className="tooltip-text">📊 Track where your money goes each month</p>
+                <div className="tooltip-actions">
+                  <button
+                    className="tooltip-next"
+                    style={{ marginLeft: "auto" }}
+                    onClick={() => {
+                      setShowTooltips(false);
+                      localStorage.setItem("swifter_tooltips_seen", "1");
+                    }}
+                  >
+                    Got it ✓
+                  </button>
+                </div>
+                <div className="tooltip-arrow tooltip-arrow-up" />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Post-Transaction Feedback Survey ────────────────────── */}
+        {showFeedback && (
+          <div
+            className="feedback-overlay"
+            onClick={() => {
+              setShowFeedback(false);
+              setFeedbackRating(0);
+              setFeedbackComment("");
+              setFeedbackSent(false);
+            }}
+          >
+            <div className="feedback-panel" onClick={(e) => e.stopPropagation()}>
+              {feedbackSent ? (
+                <div className="feedback-thanks">
+                  <div className="feedback-thanks-icon">🎉</div>
+                  <h3>Thank you!</h3>
+                  <p>Your feedback helps us make Swifter better</p>
+                  <button
+                    className="primary-btn primary-violet"
+                    style={{ width: "100%", marginTop: "0.5rem" }}
+                    onClick={() => {
+                      setShowFeedback(false);
+                      setFeedbackRating(0);
+                      setFeedbackComment("");
+                      setFeedbackSent(false);
+                    }}
+                  >
+                    Done
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="feedback-header">
+                    <h3 className="feedback-title">How was your experience?</h3>
+                    <button
+                      className="voice-close"
+                      onClick={() => {
+                        setShowFeedback(false);
+                        setFeedbackRating(0);
+                        setFeedbackComment("");
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <p className="feedback-sub">Rate your last transaction</p>
+                  <div className="feedback-stars">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        className={`feedback-star ${feedbackRating >= star ? "feedback-star-active" : ""}`}
+                        onClick={() => setFeedbackRating(star)}
+                      >
+                        ★
+                      </button>
+                    ))}
+                  </div>
+                  {feedbackRating > 0 && (
+                    <textarea
+                      className="feedback-textarea"
+                      placeholder="Optional: tell us more..."
+                      value={feedbackComment}
+                      onChange={(e) => setFeedbackComment(e.target.value)}
+                      rows={3}
+                    />
+                  )}
+                  {feedbackRating > 0 && (
+                    <button
+                      className="primary-btn primary-violet"
+                      style={{ width: "100%" }}
+                      onClick={() => setFeedbackSent(true)}
+                    >
+                      Submit Feedback
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </PhoneFrame>
   );
@@ -2219,7 +2549,7 @@ export default function SwifterApp() {
 
 // ─── Send Confirmation ───────────────────────────────────────────────
 
-function SendConfirmation({ wallet, recipient, amount, navigate, biometricEnabled = false, biometricRegistered = false, txThreshold = 500 }) {
+function SendConfirmation({ wallet, recipient, amount, navigate, biometricEnabled = false, biometricRegistered = false, txThreshold = 500, onTransactionComplete }) {
   const [sent, setSent] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [pgPhase, setPgPhase] = useState(null); // null | "scanning" | "allowed" | "blocked"
@@ -2274,6 +2604,7 @@ function SendConfirmation({ wallet, recipient, amount, navigate, biometricEnable
     setTimeout(() => {
       setProcessing(false);
       setSent(true);
+      onTransactionComplete?.();
     }, 1800);
   };
 
