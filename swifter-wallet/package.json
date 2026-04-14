@@ -20,6 +20,8 @@
     "@elevenlabs/client": "^1.2.1",
     "@prisma/adapter-pg": "^7.7.0",
     "@prisma/client": "^7.7.0",
+    "@simplewebauthn/browser": "^13.1.0",
+    "@simplewebauthn/server": "^13.1.0",
     "@tailwindcss/postcss": "^4.2.2",
     "lucide-react": "^1.8.0",
     "next": "16.2.3",
