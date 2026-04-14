@@ -1,5 +1,11 @@
 import "dotenv/config";
-import { defineConfig, env } from "prisma/config";
+import { defineConfig } from "prisma/config";
+
+// Fall back to a placeholder at build time so deployments don't fail when
+// DATABASE_URL isn't set. At runtime, Prisma Client reads DATABASE_URL from
+// the environment directly, so real DB calls still require the real value.
+const DATABASE_URL =
+  process.env.DATABASE_URL ?? "postgresql://placeholder:placeholder@localhost:5432/placeholder";
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
@@ -8,6 +14,6 @@ export default defineConfig({
     seed: "npx tsx prisma/seed.ts",
   },
   datasource: {
-    url: env("DATABASE_URL"),
+    url: DATABASE_URL,
   },
 });
