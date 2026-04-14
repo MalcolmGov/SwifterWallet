@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import SwifterAvatar from "./components/SwifterAvatar";
+import { Conversation } from "@elevenlabs/client";
 
 // ─── 3D Icon Component ───────────────────────────────────────────────
 
@@ -199,6 +200,8 @@ export default function SwifterApp() {
   const dcRef = useRef(null);
   const analyserRef = useRef(null);
   const animFrameRef = useRef(null);
+  // ElevenLabs Conversational AI session (replaces OpenAI Realtime WebRTC)
+  const elevenConvRef = useRef(null);
   const [voiceVolume, setVoiceVolume] = useState(0);
   const [pgScanning, setPgScanning] = useState(false);
   const [pgResult, setPgResult] = useState(null);
@@ -380,8 +383,8 @@ export default function SwifterApp() {
               svg: <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg> },
             { label: "Transfer", action: () => navigate("send"), glow: "#3b82f6",
               svg: <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 1L21 5L17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23L3 19L7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg> },
-            { label: "Chat Bank", action: () => window.open("https://wa.me/27600000000?text=Hi%2C%20I'd%20like%20to%20manage%20my%20SwifterWallet", "_blank"), glow: "#25D366",
-              svg: <svg width="30" height="30" viewBox="0 0 24 24" fill="#4ade80"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> },
+            { label: "Voice", action: () => { setVoiceOpen(true); setVoiceText(""); setVoiceListening(true); }, glow: "#7c3aed",
+              svg: <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> },
           ].map((a, i) => (
             <button key={i} onClick={a.action} className="action-orb" style={{ '--orb-glow': a.glow }} id={`action-${a.label.toLowerCase().replace(' ', '-')}`}>
               <div className="action-orb-glow" />
@@ -573,57 +576,35 @@ export default function SwifterApp() {
     error: "Connection error",
   };
 
-  const handleRealtimeEvent = useCallback((event) => {
-    switch (event.type) {
-      case "input_audio_buffer.speech_started":
-        setVoiceStatus("listening");
-        break;
-      case "input_audio_buffer.speech_stopped":
-        setVoiceStatus("thinking");
-        break;
-      case "conversation.item.input_audio_transcription.completed":
-        setTranscript(event.transcript || "");
-        break;
-      case "response.audio_transcript.delta":
-        setAiResponse(prev => prev + (event.delta || ""));
-        setVoiceStatus("speaking");
-        break;
-      case "response.audio_transcript.done":
-        setVoiceStatus("listening");
-        break;
-      case "response.done":
-        if (event.response?.output) {
-          event.response.output.forEach(item => {
-            if (item.type === "function_call") {
-              voiceExecuteFunction(item.name, JSON.parse(item.arguments || "{}"), item.call_id);
-            }
-          });
-        }
-        setVoiceStatus("listening");
-        break;
-      case "error":
-        console.error("Realtime error:", event.error);
-        setVoiceStatus("error");
-        setAiResponse(`Error: ${event.error?.message || "Unknown error"}`);
-        break;
+  // ElevenLabs message handler — keeps the UI in sync with the
+  // conversation. ElevenLabs emits { message, source } where source is
+  // "user" or "ai".
+  const handleElevenLabsMessage = useCallback((msg) => {
+    if (!msg) return;
+    if (msg.source === "user") {
+      setTranscript(msg.message || "");
+    } else if (msg.source === "ai") {
+      setAiResponse(msg.message || "");
     }
   }, []);
 
-  const voiceExecuteFunction = useCallback((name, args, callId) => {
+  // Shared action-executor used by every voice tool. Returns a result
+  // object that the agent will see on the next turn.
+  const voiceExecuteFunction = useCallback((name, args = {}) => {
     let result = {};
     switch (name) {
       case "send_money":
-        result = { success: true, message: `Sent R${args.amount?.toFixed(2)} to ${args.recipient}` };
+        result = { success: true, message: `Sent R${args.amount?.toFixed?.(2) ?? args.amount} to ${args.recipient}` };
         setActionLog(prev => [...prev, `💸 Sent R${args.amount} to ${args.recipient}`]);
-        setToastMsg(`R${args.amount?.toFixed(2)} sent to ${args.recipient}`);
+        setToastMsg(`R${args.amount?.toFixed?.(2) ?? args.amount} sent to ${args.recipient}`);
         break;
       case "transfer_funds":
-        result = { success: true, message: `Transferred R${args.amount?.toFixed(2)} from ${args.from_wallet} to ${args.to_wallet}` };
+        result = { success: true, message: `Transferred R${args.amount?.toFixed?.(2) ?? args.amount} from ${args.from_wallet} to ${args.to_wallet}` };
         setActionLog(prev => [...prev, `🔄 R${args.amount} ${args.from_wallet} → ${args.to_wallet}`]);
-        setToastMsg(`R${args.amount?.toFixed(2)} transferred`);
+        setToastMsg(`R${args.amount?.toFixed?.(2) ?? args.amount} transferred`);
         break;
       case "add_funds":
-        result = { success: true, message: `Added R${args.amount?.toFixed(2)}` };
+        result = { success: true, message: `Added R${args.amount?.toFixed?.(2) ?? args.amount}` };
         setActionLog(prev => [...prev, `➕ Added R${args.amount}`]);
         navigate("addFunds");
         break;
@@ -637,11 +618,12 @@ export default function SwifterApp() {
         setActionLog(prev => [...prev, `📄 Paid ${args.bill_name}`]);
         setToastMsg(`${args.bill_name} paid`);
         break;
-      case "check_balance":
+      case "check_balance": {
         const balances = { main: 24850, savings: 12420.5, business: 8390.75, all: 45661.25 };
         const w = args.wallet || "all";
         result = { balance: balances[w], wallet: w, formatted: `R${balances[w]?.toLocaleString("en-ZA", { minimumFractionDigits: 2 })}` };
         break;
+      }
       case "navigate_screen":
         navigate(args.screen);
         result = { success: true, message: `Navigated to ${args.screen}` };
@@ -650,34 +632,29 @@ export default function SwifterApp() {
       default:
         result = { error: "Unknown function" };
     }
-    if (dcRef.current?.readyState === "open") {
-      dcRef.current.send(JSON.stringify({
-        type: "conversation.item.create",
-        item: { type: "function_call_output", call_id: callId, output: JSON.stringify(result) },
-      }));
-      dcRef.current.send(JSON.stringify({ type: "response.create" }));
-    }
+    return result;
   }, []);
 
-  const stopVoiceSession = useCallback(() => {
+  const stopVoiceSession = useCallback(async () => {
     if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    animFrameRef.current = null;
     analyserRef.current = null;
     setVoiceVolume(0);
-    if (peerRef.current) {
-      peerRef.current.getSenders().forEach(s => { if (s.track) s.track.stop(); });
-      peerRef.current.close();
-      peerRef.current = null;
+
+    // End the ElevenLabs WebSocket session if one is live
+    if (elevenConvRef.current) {
+      try { await elevenConvRef.current.endSession(); } catch { /* ignore */ }
+      elevenConvRef.current = null;
     }
-    if (audioRef.current) {
-      audioRef.current.srcObject = null;
-      audioRef.current.remove();
-      audioRef.current = null;
-    }
-    dcRef.current = null;
+
     setVoiceStatus("idle");
     setVoiceListening(false);
   }, []);
 
+  /**
+   * Start an ElevenLabs Conversational AI session.
+   * Expressive v3 voice + server-side LLM/STT/TTS over WebSocket.
+   */
   const startVoiceSession = useCallback(async () => {
     try {
       setVoiceStatus("connecting");
@@ -685,92 +662,87 @@ export default function SwifterApp() {
       setAiResponse("");
       setActionLog([]);
 
-      const tokenRes = await fetch("/api/voice-session", { method: "POST" });
-      if (!tokenRes.ok) throw new Error(`API ${tokenRes.status}: ${await tokenRes.text()}`);
-      const sessionData = await tokenRes.json();
-      const ephemeralKey = sessionData.client_secret?.value;
-      if (!ephemeralKey) throw new Error("No ephemeral key");
+      // Mic permission up-front (SDK will re-use this stream internally)
+      await navigator.mediaDevices.getUserMedia({ audio: true });
 
-      const pc = new RTCPeerConnection();
-      peerRef.current = pc;
+      // Wallet summary (hardcoded demo data — swap for real fetch later)
+      const walletSummary = "Main (personal): R24,850.00; Savings: R12,420.50; Business: R8,390.75";
 
-      const audioEl = document.createElement("audio");
-      audioEl.autoplay = true;
-      audioEl.playsInline = true;
-      document.body.appendChild(audioEl);
-      audioRef.current = audioEl;
-      pc.ontrack = (e) => {
-        audioEl.srcObject = e.streams[0];
-        audioEl.play().catch(() => {});
-        // Set up audio analyser for volume detection
-        try {
-          const actx = new (window.AudioContext || window.webkitAudioContext)();
-          const source = actx.createMediaStreamSource(e.streams[0]);
-          const analyser = actx.createAnalyser();
-          analyser.fftSize = 256;
-          source.connect(analyser);
-          analyserRef.current = analyser;
-          const dataArray = new Uint8Array(analyser.frequencyBinCount);
-          const tick = () => {
-            analyser.getByteFrequencyData(dataArray);
-            const avg = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
-            setVoiceVolume(Math.min(1, avg / 80));
-            animFrameRef.current = requestAnimationFrame(tick);
-          };
-          tick();
-        } catch (e) { console.warn("Audio analyser failed:", e); }
-      };
-
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      pc.addTrack(stream.getTracks()[0], stream);
-
-      pc.oniceconnectionstatechange = () => {
-        if (pc.iceConnectionState === "failed" || pc.iceConnectionState === "disconnected") {
+      // Public vs private agent: if NEXT_PUBLIC_ELEVENLABS_AGENT_ID is
+      // defined the browser connects directly; otherwise we fall back
+      // to the signed-url route (keeps API key server-side).
+      const publicAgentId = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID;
+      const sessionArgs = {
+        dynamicVariables: {
+          user_name: "Malcolm",
+          user_full_name: "Malcolm Govender",
+          is_authenticated: "true",
+          wallet_count: "3",
+          balance_currency: "ZAR",
+          balance_total: "45,661.25",
+          wallets_summary: walletSummary,
+          session_date: new Date().toISOString().slice(0, 10),
+        },
+        clientTools: {
+          send_money: (args) => voiceExecuteFunction("send_money", args),
+          transfer_funds: (args) => voiceExecuteFunction("transfer_funds", args),
+          add_funds: (args) => voiceExecuteFunction("add_funds", args),
+          buy_airtime: (args) => voiceExecuteFunction("buy_airtime", args),
+          pay_bill: (args) => voiceExecuteFunction("pay_bill", args),
+          check_balance: (args) => voiceExecuteFunction("check_balance", args),
+          navigate_screen: (args) => voiceExecuteFunction("navigate_screen", args),
+        },
+        onConnect: () => setVoiceStatus("listening"),
+        onDisconnect: () => setVoiceStatus("idle"),
+        onError: (err) => {
+          console.error("[ElevenLabs]", err);
           setVoiceStatus("error");
-          setAiResponse("Connection lost.");
-        }
+          setAiResponse(err?.message || "Voice connection error");
+        },
+        onMessage: handleElevenLabsMessage,
+        onModeChange: ({ mode }) => {
+          // mode is "listening" | "speaking"
+          setVoiceStatus(mode === "speaking" ? "speaking" : "listening");
+        },
       };
 
-      const dc = pc.createDataChannel("oai-events");
-      dcRef.current = dc;
+      let conv;
+      if (publicAgentId) {
+        conv = await Conversation.startSession({
+          agentId: publicAgentId,
+          ...sessionArgs,
+        });
+      } else {
+        const r = await fetch("/api/elevenlabs/signed-url");
+        if (!r.ok) throw new Error(`signed-url ${r.status}`);
+        const { signedUrl } = await r.json();
+        conv = await Conversation.startSession({ signedUrl, ...sessionArgs });
+      }
+      elevenConvRef.current = conv;
 
-      dc.onopen = () => {
-        setVoiceStatus("listening");
-        setTimeout(() => {
-          if (dc.readyState === "open") {
-            dc.send(JSON.stringify({
-              type: "conversation.item.create",
-              item: { type: "message", role: "user", content: [{ type: "input_text", text: "Hi! Please greet me by name (Malcolm) and briefly tell me what you can help with." }] },
-            }));
-            dc.send(JSON.stringify({ type: "response.create" }));
-          }
-        }, 800);
-      };
-
-      dc.onmessage = (e) => {
-        try { handleRealtimeEvent(JSON.parse(e.data)); } catch (err) { console.error("Parse:", err); }
-      };
-
-      dc.onerror = () => { setVoiceStatus("error"); setAiResponse("Data channel error."); };
-
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-
-      const sdpRes = await fetch("https://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2025-06-03", {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${ephemeralKey}`, "Content-Type": "application/sdp" },
-        body: offer.sdp,
-      });
-
-      if (!sdpRes.ok) throw new Error(`SDP ${sdpRes.status}`);
-      await pc.setRemoteDescription({ type: "answer", sdp: await sdpRes.text() });
-
+      // Drive the volume pulse animation from the agent's output
+      try {
+        const tick = () => {
+          try {
+            const data = conv.getOutputByteFrequencyData?.();
+            if (data && data.length) {
+              let sum = 0;
+              for (let i = 0; i < data.length; i++) sum += data[i];
+              setVoiceVolume(Math.min(1, sum / data.length / 80));
+            }
+          } catch { /* no-op */ }
+          animFrameRef.current = requestAnimationFrame(tick);
+        };
+        tick();
+      } catch (e) {
+        console.warn("Volume meter failed:", e);
+      }
     } catch (err) {
       console.error("Voice error:", err);
       setVoiceStatus("error");
-      setAiResponse(err.message || "Failed to connect");
+      setAiResponse(err?.message || "Failed to connect");
     }
-  }, [handleRealtimeEvent]);
+  }, [handleElevenLabsMessage, voiceExecuteFunction]);
 
   useEffect(() => {
     return () => { if (peerRef.current) stopVoiceSession(); };
