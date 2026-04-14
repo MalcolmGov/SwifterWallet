@@ -28,14 +28,29 @@ const WALLETS = [
 ];
 
 const TRANSACTIONS = [
-  { id: "t1", description: "Spotify Premium", amount: -59.99, type: "PAYMENT", category: "entertainment", date: "2026-04-11T10:30:00", walletId: "w1", icon: "music" },
-  { id: "t2", description: "Deposit from Yoco", amount: 2500.0, type: "DEPOSIT", category: "deposit", date: "2026-04-11T09:15:00", walletId: "w1", icon: "deposit" },
-  { id: "t3", description: "Transfer to Savings", amount: -1000.0, type: "TRANSFER", category: "transfer", date: "2026-04-10T16:45:00", walletId: "w1", icon: "transfer" },
-  { id: "t4", description: "Woolworths", amount: -342.8, type: "PAYMENT", category: "shopping", date: "2026-04-10T14:20:00", walletId: "w1", icon: "shopping" },
-  { id: "t5", description: "Vida e Caffè", amount: -48.0, type: "PAYMENT", category: "food", date: "2026-04-10T08:30:00", walletId: "w1", icon: "coffee" },
-  { id: "t6", description: "Freelance Payment", amount: 5800.0, type: "DEPOSIT", category: "deposit", date: "2026-04-09T12:00:00", walletId: "w3", icon: "deposit" },
-  { id: "t7", description: "Electricity", amount: -850.0, type: "PAYMENT", category: "utilities", date: "2026-04-09T10:00:00", walletId: "w1", icon: "utilities" },
-  { id: "t8", description: "Transfer from Business", amount: 2000.0, type: "TRANSFER", category: "transfer", date: "2026-04-08T15:30:00", walletId: "w1", icon: "transfer" },
+  // Today
+  { id: "t1", description: "Spotify Premium", amount: -59.99, type: "PAYMENT", category: "entertainment", date: "2026-04-14T10:30:00", walletId: "w1", icon: "music" },
+  { id: "t2", description: "Salary — Accenture SA", amount: 42000.0, type: "DEPOSIT", category: "deposit", date: "2026-04-14T08:00:00", walletId: "w1", icon: "deposit" },
+  // Yesterday
+  { id: "t3", description: "Checkers — Sandton", amount: -512.40, type: "PAYMENT", category: "shopping", date: "2026-04-13T17:22:00", walletId: "w1", icon: "shopping" },
+  { id: "t4", description: "Uber Eats — Nando's", amount: -187.0, type: "PAYMENT", category: "food", date: "2026-04-13T13:05:00", walletId: "w1", icon: "coffee" },
+  { id: "t5", description: "Transfer to Savings", amount: -5000.0, type: "TRANSFER", category: "transfer", date: "2026-04-13T09:00:00", walletId: "w1", icon: "transfer" },
+  // 2 days ago
+  { id: "t6", description: "SnapScan — Engen Garage", amount: -650.0, type: "PAYMENT", category: "transport", date: "2026-04-12T16:45:00", walletId: "w1", icon: "utilities" },
+  { id: "t7", description: "Woolworths Food", amount: -342.80, type: "PAYMENT", category: "shopping", date: "2026-04-12T14:20:00", walletId: "w1", icon: "shopping" },
+  { id: "t8", description: "Vida e Caffè — Rosebank", amount: -48.0, type: "PAYMENT", category: "food", date: "2026-04-12T08:30:00", walletId: "w1", icon: "coffee" },
+  // Earlier this week
+  { id: "t9", description: "Freelance — Web Design", amount: 8500.0, type: "DEPOSIT", category: "deposit", date: "2026-04-11T12:00:00", walletId: "w3", icon: "deposit" },
+  { id: "t10", description: "City Power — Electricity", amount: -850.0, type: "PAYMENT", category: "utilities", date: "2026-04-11T10:00:00", walletId: "w1", icon: "utilities" },
+  { id: "t11", description: "Transfer from Business", amount: 2000.0, type: "TRANSFER", category: "transfer", date: "2026-04-10T15:30:00", walletId: "w1", icon: "transfer" },
+  { id: "t12", description: "Gym — Virgin Active", amount: -349.0, type: "PAYMENT", category: "health", date: "2026-04-10T07:00:00", walletId: "w1", icon: "utilities" },
+  // Last week
+  { id: "t13", description: "Pick n Pay — Fourways", amount: -623.15, type: "PAYMENT", category: "shopping", date: "2026-04-08T11:30:00", walletId: "w1", icon: "shopping" },
+  { id: "t14", description: "Deposit via Yoco", amount: 2500.0, type: "DEPOSIT", category: "deposit", date: "2026-04-07T14:00:00", walletId: "w1", icon: "deposit" },
+  { id: "t15", description: "DStv Premium", amount: -969.0, type: "PAYMENT", category: "entertainment", date: "2026-04-07T09:00:00", walletId: "w1", icon: "music" },
+  { id: "t16", description: "Bolt — Johannesburg CBD", amount: -89.0, type: "PAYMENT", category: "transport", date: "2026-04-06T18:45:00", walletId: "w1", icon: "coffee" },
+  { id: "t17", description: "Takealot — Order #48291", amount: -1299.0, type: "PAYMENT", category: "shopping", date: "2026-04-05T10:00:00", walletId: "w1", icon: "shopping" },
+  { id: "t18", description: "Telkom Fibre", amount: -699.0, type: "PAYMENT", category: "utilities", date: "2026-04-05T08:00:00", walletId: "w1", icon: "utilities" },
 ];
 
 const CONTACTS = [
@@ -44,6 +59,8 @@ const CONTACTS = [
   { id: "c3", name: "Thabo Nkosi", avatar: "TN", gradient: "linear-gradient(135deg, #10b981, #34d399)", phone: "060 987 6543", lastPayment: "2026-04-01" },
   { id: "c4", name: "Lisa Pretorius", avatar: "LP", gradient: "linear-gradient(135deg, #f59e0b, #fbbf24)", phone: "083 321 0987", lastPayment: "2026-03-18" },
   { id: "c5", name: "James Ramaphosa", avatar: "JR", gradient: "linear-gradient(135deg, #7c3aed, #a78bfa)", phone: "073 654 3210", lastPayment: "2026-04-05" },
+  { id: "c6", name: "Ayanda Zulu", avatar: "AZ", gradient: "linear-gradient(135deg, #06b6d4, #22d3ee)", phone: "079 128 6673", lastPayment: "2026-04-03" },
+  { id: "c7", name: "Priya Sharma", avatar: "PS", gradient: "linear-gradient(135deg, #f43f5e, #fb7185)", phone: "066 451 2234", lastPayment: "2026-03-29" },
 ];
 
 const SPENDING = [
@@ -147,9 +164,41 @@ const formatTime = (dateStr) => {
   const d = new Date(dateStr);
   const now = new Date();
   const diff = now - d;
+  if (diff < 60000) return "Just now";
   if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
   if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+  if (diff < 172800000) return "Yesterday";
   return d.toLocaleDateString("en-ZA", { day: "numeric", month: "short" });
+};
+
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+};
+
+const groupTransactionsByDate = (transactions) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const weekAgo = new Date(today);
+  weekAgo.setDate(weekAgo.getDate() - 7);
+
+  const groups = {};
+  transactions.forEach((tx) => {
+    const d = new Date(tx.date);
+    d.setHours(0, 0, 0, 0);
+    let label;
+    if (d.getTime() === today.getTime()) label = "Today";
+    else if (d.getTime() === yesterday.getTime()) label = "Yesterday";
+    else if (d >= weekAgo) label = "Earlier this week";
+    else label = d.toLocaleDateString("en-ZA", { month: "long", year: "numeric" });
+    if (!groups[label]) groups[label] = [];
+    groups[label].push(tx);
+  });
+  return groups;
 };
 
 // ─── SVG Icons (for UI chrome — small controls) ─────────────────────
@@ -381,7 +430,7 @@ export default function SwifterApp() {
                 </svg>
                 <span className="brand-name">SWIFTER</span>
               </div>
-              <p className="header-greeting">Good morning, <strong>Malcolm</strong> 👋</p>
+              <p className="header-greeting">{getGreeting()}, <strong>Malcolm</strong> 👋</p>
             </div>
           </div>
           <div className="header-actions">
@@ -453,8 +502,26 @@ export default function SwifterApp() {
         </div>
       </div>
 
-      {/* Quick Pay Contacts */}
+      {/* Wallet Mini-Strip */}
       <div className={`section ${slideUp ? "slide-visible delay-2" : ""}`}>
+        <div className="section-header">
+          <h3 className="section-title">My Wallets</h3>
+          <button onClick={() => navigate("wallets")} className="section-link" id="see-all-wallets">Manage</button>
+        </div>
+        <div className="wallet-strip">
+          {WALLETS.map((w) => (
+            <button key={w.id} onClick={() => navigate("wallets")} className="wallet-strip-card" style={{ background: w.gradient }}>
+              <div className="wallet-strip-orb" />
+              <span className="wallet-strip-type">{w.type}</span>
+              <span className="wallet-strip-balance">{balanceVisible ? formatCurrency(w.balance) : "•••••"}</span>
+              <span className="wallet-strip-name">{w.name}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Quick Pay Contacts */}
+      <div className={`section ${slideUp ? "slide-visible delay-3" : ""}`}>
         <div className="section-header">
           <h3 className="section-title">Quick Pay</h3>
           <button className="section-link" id="manage-contacts">Manage</button>
@@ -478,7 +545,7 @@ export default function SwifterApp() {
       </div>
 
       {/* Spending Insights */}
-      <div className={`section ${slideUp ? "slide-visible delay-3" : ""}`}>
+      <div className={`section ${slideUp ? "slide-visible delay-4" : ""}`}>
         <div className="section-header">
           <h3 className="section-title">Spending Insights</h3>
           <span className="section-subtitle">This month</span>
@@ -520,7 +587,7 @@ export default function SwifterApp() {
       </div>
 
       {/* Savings Goals */}
-      <div className={`section ${slideUp ? "slide-visible delay-4" : ""}`}>
+      <div className={`section ${slideUp ? "slide-visible delay-5" : ""}`}>
         <div className="section-header">
           <h3 className="section-title">Savings Goals</h3>
           <button className="section-link" id="add-goal">+ New</button>
@@ -556,7 +623,7 @@ export default function SwifterApp() {
       </div>
 
       {/* Upcoming Bills */}
-      <div className={`section ${slideUp ? "slide-visible delay-5" : ""}`}>
+      <div className={`section ${slideUp ? "slide-visible delay-6" : ""}`}>
         <div className="section-header">
           <h3 className="section-title">Upcoming Bills</h3>
           <button className="section-link" id="all-bills">See All</button>
@@ -586,7 +653,7 @@ export default function SwifterApp() {
       </div>
 
       {/* Recent Transactions */}
-      <div className={`section last-section ${slideUp ? "slide-visible delay-6" : ""}`}>
+      <div className={`section last-section ${slideUp ? "slide-visible" : ""}`} style={{ transitionDelay: "700ms" }}>
         <div className="section-header">
           <h3 className="section-title">Recent Transactions</h3>
           <button onClick={() => navigate("history")} className="section-link" id="see-all-tx">See All</button>
@@ -1099,7 +1166,7 @@ export default function SwifterApp() {
                 <div className="avatar" style={{ background: c.gradient }}>{c.avatar}</div>
                 <div className="select-info">
                   <p className="select-name">{c.name}</p>
-                  <p className="select-sub">Recent</p>
+                  <p className="select-sub">{c.phone || "Recent"}</p>
                 </div>
                 <ChevronRightSvg />
               </button>
@@ -1113,17 +1180,32 @@ export default function SwifterApp() {
         <div className={`step-content ${slideUp ? "slide-visible" : ""}`}>
           <div className="amount-recipient">
             <div className="avatar avatar-lg" style={{ background: sendRecipient?.gradient }}>{sendRecipient?.avatar}</div>
-            <p className="amount-to">Sending to <strong>{sendRecipient?.name}</strong></p>
+            <div>
+              <p className="amount-to">Sending to <strong>{sendRecipient?.name}</strong></p>
+              {sendRecipient?.phone && <p className="amount-phone">{sendRecipient.phone}</p>}
+            </div>
           </div>
           <div className="amount-display">
             <span className="amount-currency">R</span>
-            <span className="amount-value">{sendAmount || "0"}</span>
+            <span className={`amount-value ${sendAmount && Number(sendAmount) > sendWallet.balance ? "amount-over" : ""}`}>
+              {sendAmount || "0"}
+            </span>
           </div>
-          <p className="amount-available">Available: {formatCurrency(sendWallet.balance)}</p>
+          <p className="amount-available">
+            Available: <strong>{formatCurrency(sendWallet.balance)}</strong>
+            {sendAmount && Number(sendAmount) > sendWallet.balance && (
+              <span className="amount-warning"> · Insufficient funds</span>
+            )}
+          </p>
+          <div className="quick-amounts">
+            {[50, 100, 250, 500].map((q) => (
+              <button key={q} onClick={() => setSendAmount(String(q))} className={`quick-amount-btn ${sendAmount === String(q) ? "quick-amount-active" : ""}`}>R{q}</button>
+            ))}
+          </div>
           {numpad(setSendAmount, sendAmount)}
           <div style={{ padding: "0 1.5rem", marginTop: "1.25rem" }}>
-            <button onClick={() => sendAmount && Number(sendAmount) > 0 && setSendStep(3)}
-              disabled={!sendAmount || Number(sendAmount) <= 0}
+            <button onClick={() => sendAmount && Number(sendAmount) > 0 && Number(sendAmount) <= sendWallet.balance && setSendStep(3)}
+              disabled={!sendAmount || Number(sendAmount) <= 0 || Number(sendAmount) > sendWallet.balance}
               className="primary-btn primary-violet" id="send-continue">
               Continue
             </button>
@@ -1513,12 +1595,29 @@ export default function SwifterApp() {
       return true;
     });
 
+    const grouped = groupTransactionsByDate(filtered);
+    const totalIn = filtered.filter((t) => t.amount > 0).reduce((s, t) => s + t.amount, 0);
+    const totalOut = filtered.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
+
     return (
       <div className={`screen-fade ${fadeIn ? "visible" : ""}`} style={{ paddingBottom: "6rem" }}>
         <div className="sub-header">
           <button onClick={() => navigate("dashboard")} className="back-btn" id="history-back"><ChevronLeftSvg /></button>
           <h2 className="sub-title">Transactions</h2>
           <button className="back-btn" id="history-search"><SearchSvg /></button>
+        </div>
+
+        {/* Monthly summary */}
+        <div className={`history-summary ${slideUp ? "slide-visible" : ""}`}>
+          <div className="history-summary-item">
+            <span className="history-summary-label">Money In</span>
+            <span className="history-summary-in">+{formatCurrency(totalIn)}</span>
+          </div>
+          <div className="history-summary-divider" />
+          <div className="history-summary-item">
+            <span className="history-summary-label">Money Out</span>
+            <span className="history-summary-out">-{formatCurrency(totalOut)}</span>
+          </div>
         </div>
 
         <div className="filter-bar">
@@ -1531,28 +1630,43 @@ export default function SwifterApp() {
         </div>
 
         <div className={`tx-history ${slideUp ? "slide-visible delay-1" : ""}`}>
-          <div className="tx-list">
-            {filtered.map((tx, i) => (
-              <div key={tx.id} className={`tx-row ${i > 0 ? "tx-row-border" : ""}`}>
-                <TransactionIcon type={tx.icon} />
-                <div className="tx-info">
-                  <p className="tx-desc">{tx.description}</p>
-                  <p className="tx-time">{formatTime(tx.date)}</p>
+          {filtered.length === 0 ? (
+            <div className="empty-state-premium">
+              <div className="empty-state-icon">
+                <Icon3D src={ICON_MAP.payment} alt="no transactions" size={52} />
+              </div>
+              <h3 className="empty-state-title">No transactions yet</h3>
+              <p className="empty-state-desc">Your transactions will appear here once you start sending or receiving money.</p>
+              <button onClick={() => navigate("send")} className="primary-btn primary-violet" style={{ marginTop: "1.5rem", width: "80%" }}>
+                Send Money
+              </button>
+            </div>
+          ) : (
+            Object.entries(grouped).map(([label, txs]) => (
+              <div key={label} className="tx-group">
+                <div className="tx-group-header">
+                  <span className="tx-group-label">{label}</span>
+                  <span className="tx-group-count">{txs.length} transaction{txs.length !== 1 ? "s" : ""}</span>
                 </div>
-                <div className="tx-right">
-                  <p className={`tx-amount ${tx.amount > 0 ? "tx-positive" : ""}`}>
-                    {tx.amount > 0 ? "+" : "-"}{formatCurrency(tx.amount)}
-                  </p>
-                  <p className="tx-type">{tx.type.toLowerCase()}</p>
+                <div className="tx-list">
+                  {txs.map((tx, i) => (
+                    <div key={tx.id} className={`tx-row ${i > 0 ? "tx-row-border" : ""}`}>
+                      <TransactionIcon type={tx.icon} />
+                      <div className="tx-info">
+                        <p className="tx-desc">{tx.description}</p>
+                        <p className="tx-time">{formatTime(tx.date)}</p>
+                      </div>
+                      <div className="tx-right">
+                        <p className={`tx-amount ${tx.amount > 0 ? "tx-positive" : "tx-negative"}`}>
+                          {tx.amount > 0 ? "+" : "-"}{formatCurrency(tx.amount)}
+                        </p>
+                        <p className="tx-type">{tx.type.toLowerCase()}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
-          </div>
-          {filtered.length === 0 && (
-            <div className="empty-state">
-              <Icon3D src={ICON_MAP.payment} alt="no transactions" size={48} />
-              <p>No transactions found</p>
-            </div>
+            ))
           )}
         </div>
       </div>
@@ -1562,58 +1676,141 @@ export default function SwifterApp() {
   // ─── Settings Screen ────────────────────────────────────────────
 
   const SettingsScreen = () => (
-    <div className={`screen-fade ${fadeIn ? "visible" : ""}`} style={{ padding: "0 1.5rem", paddingBottom: "6rem" }}>
-      <h2 className="section-title" style={{ paddingTop: "0.5rem", marginBottom: "1.5rem", fontSize: "1.25rem" }}>Settings</h2>
-      <div className="settings-list">
-        {[
-          { emoji: "👤", label: "Profile", desc: "Manage your account" },
-          { emoji: "💳", label: "Payment Methods", desc: `${savedCards.length} card${savedCards.length !== 1 ? "s" : ""} saved`, action: () => navigate("manageCards") },
-          { emoji: dark ? "☀️" : "🌙", label: "Appearance", desc: dark ? "Switch to light mode" : "Switch to dark mode", action: () => setDark(!dark) },
-        ].map((item, i) => (
-          <button key={i} onClick={item.action} className={`settings-item ${i > 0 ? "settings-border" : ""}`} id={`setting-${item.label.toLowerCase()}`}>
-            <div className="settings-icon">{item.emoji}</div>
-            <div className="settings-info">
-              <p className="settings-label">{item.label}</p>
-              <p className="settings-desc">{item.desc}</p>
-            </div>
-            <ChevronRightSvg />
-          </button>
-        ))}
+    <div className={`screen-fade ${fadeIn ? "visible" : ""}`} style={{ paddingBottom: "6rem" }}>
+      {/* Profile card */}
+      <div className="settings-profile-card">
+        <div className="settings-profile-aurora" />
+        <div className="avatar-ring" style={{ width: 64, height: 64, padding: 3 }}>
+          <Image src="/icons/avatar-malcolm.jpg" alt="Malcolm" width={58} height={58} className="settings-avatar-img" />
+          <span className="avatar-online" />
+        </div>
+        <div className="settings-profile-info">
+          <p className="settings-profile-name">Malcolm Govender</p>
+          <p className="settings-profile-email">malcolm@swifterwallet.co.za</p>
+          <div className="settings-profile-badge">
+            <span className="settings-profile-badge-dot" />
+            Verified Account
+          </div>
+        </div>
+        <button className="settings-edit-btn" onClick={() => setToastMsg("Profile editor coming soon")}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
       </div>
 
-      {/* SmartSendr Notification Preferences */}
-      <div className="smartsendr-card" style={{ marginTop: "1.5rem" }}>
-        <div className="smartsendr-header">
-          <span className="smartsendr-logo">📲 SmartSendr</span>
-          <button
-            className={`toggle-switch ${notifEnabled ? "toggle-on" : ""}`}
-            onClick={() => setNotifEnabled(!notifEnabled)}
-            id="notif-toggle"
-          >
-            <div className="toggle-thumb" />
-          </button>
+      <div style={{ padding: "0 1.5rem" }}>
+        {/* Account */}
+        <p className="settings-section-label">Account</p>
+        <div className="settings-list">
+          {[
+            { emoji: "💳", label: "Payment Methods", desc: `${savedCards.length} card${savedCards.length !== 1 ? "s" : ""} saved`, action: () => navigate("manageCards") },
+            { emoji: "📊", label: "Statement", desc: "Download or share your history", action: () => setToastMsg("Statement download coming soon") },
+            { emoji: "🔗", label: "Linked Accounts", desc: "Manage bank connections", action: () => setToastMsg("Bank linking coming soon") },
+          ].map((item, i) => (
+            <button key={i} onClick={item.action} className={`settings-item ${i > 0 ? "settings-border" : ""}`} id={`setting-${item.label.toLowerCase().replace(/ /g, "-")}`}>
+              <div className="settings-icon">{item.emoji}</div>
+              <div className="settings-info">
+                <p className="settings-label">{item.label}</p>
+                <p className="settings-desc">{item.desc}</p>
+              </div>
+              <ChevronRightSvg />
+            </button>
+          ))}
         </div>
-        <p className="smartsendr-desc">Get instant receipts for every transaction</p>
-        {notifEnabled && (
-          <div className="smartsendr-channels">
-            {[
-              { id: "whatsapp", label: "WhatsApp", icon: "💬", color: "#25D366" },
-              { id: "sms", label: "SMS", icon: "📱", color: "#3b82f6" },
-              { id: "email", label: "Email", icon: "📧", color: "#8b5cf6" },
-            ].map((ch) => (
-              <button
-                key={ch.id}
-                className={`channel-chip ${notifChannel === ch.id ? "channel-active" : ""}`}
-                style={{ '--ch-color': ch.color }}
-                onClick={() => { setNotifChannel(ch.id); setToastMsg(`Notifications set to ${ch.label}`); }}
-                id={`channel-${ch.id}`}
-              >
-                <span>{ch.icon}</span>
-                <span>{ch.label}</span>
-              </button>
-            ))}
+
+        {/* Preferences */}
+        <p className="settings-section-label">Preferences</p>
+        <div className="settings-list">
+          {[
+            { emoji: dark ? "☀️" : "🌙", label: "Appearance", desc: dark ? "Currently dark mode" : "Currently light mode", action: () => { setDark(!dark); setToastMsg(`Switched to ${dark ? "light" : "dark"} mode`); } },
+            { emoji: "🌍", label: "Currency & Region", desc: "ZAR · South Africa", action: () => setToastMsg("Region settings coming soon") },
+            { emoji: "🔔", label: "Notifications", desc: notifEnabled ? `Active via ${notifChannel}` : "Disabled", action: () => setNotifEnabled(!notifEnabled) },
+          ].map((item, i) => (
+            <button key={i} onClick={item.action} className={`settings-item ${i > 0 ? "settings-border" : ""}`}>
+              <div className="settings-icon">{item.emoji}</div>
+              <div className="settings-info">
+                <p className="settings-label">{item.label}</p>
+                <p className="settings-desc">{item.desc}</p>
+              </div>
+              <ChevronRightSvg />
+            </button>
+          ))}
+        </div>
+
+        {/* Security */}
+        <p className="settings-section-label">Security</p>
+        <div className="settings-list">
+          {[
+            { emoji: "🔐", label: "Biometrics", desc: "Face ID & fingerprint", action: () => setToastMsg("Biometrics coming soon") },
+            { emoji: "🛡️", label: "PayGuard™", desc: "AI fraud protection · Active", accent: "#10b981", action: () => setToastMsg("PayGuard is active and protecting your account") },
+            { emoji: "🗝️", label: "Change PIN", desc: "Update your security PIN", action: () => setToastMsg("PIN change coming soon") },
+          ].map((item, i) => (
+            <button key={i} onClick={item.action} className={`settings-item ${i > 0 ? "settings-border" : ""}`}>
+              <div className="settings-icon">{item.emoji}</div>
+              <div className="settings-info">
+                <p className="settings-label">{item.label}</p>
+                <p className="settings-desc" style={item.accent ? { color: item.accent } : {}}>{item.desc}</p>
+              </div>
+              <ChevronRightSvg />
+            </button>
+          ))}
+        </div>
+
+        {/* SmartSendr */}
+        <p className="settings-section-label">Notifications</p>
+        <div className="smartsendr-card">
+          <div className="smartsendr-header">
+            <span className="smartsendr-logo">📲 SmartSendr</span>
+            <button
+              className={`toggle-switch ${notifEnabled ? "toggle-on" : ""}`}
+              onClick={() => setNotifEnabled(!notifEnabled)}
+              id="notif-toggle"
+            >
+              <div className="toggle-thumb" />
+            </button>
           </div>
-        )}
+          <p className="smartsendr-desc">Get instant receipts for every transaction</p>
+          {notifEnabled && (
+            <div className="smartsendr-channels">
+              {[
+                { id: "whatsapp", label: "WhatsApp", icon: "💬", color: "#25D366" },
+                { id: "sms", label: "SMS", icon: "📱", color: "#3b82f6" },
+                { id: "email", label: "Email", icon: "📧", color: "#8b5cf6" },
+              ].map((ch) => (
+                <button
+                  key={ch.id}
+                  className={`channel-chip ${notifChannel === ch.id ? "channel-active" : ""}`}
+                  style={{ '--ch-color': ch.color }}
+                  onClick={() => { setNotifChannel(ch.id); setToastMsg(`Notifications set to ${ch.label}`); }}
+                  id={`channel-${ch.id}`}
+                >
+                  <span>{ch.icon}</span>
+                  <span>{ch.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Help & Support */}
+        <p className="settings-section-label">Help</p>
+        <div className="settings-list" style={{ marginBottom: 0 }}>
+          {[
+            { emoji: "💬", label: "Support Chat", desc: "Chat with our team", action: () => setToastMsg("Support chat coming soon") },
+            { emoji: "📋", label: "Terms & Privacy", desc: "Legal documents", action: () => setToastMsg("Opening privacy policy...") },
+            { emoji: "🚪", label: "Sign Out", desc: "End your session", action: () => setToastMsg("Sign out coming soon") },
+          ].map((item, i) => (
+            <button key={i} onClick={item.action} className={`settings-item ${i > 0 ? "settings-border" : ""}`}>
+              <div className="settings-icon">{item.emoji}</div>
+              <div className="settings-info">
+                <p className="settings-label">{item.label}</p>
+                <p className="settings-desc">{item.desc}</p>
+              </div>
+              <ChevronRightSvg />
+            </button>
+          ))}
+        </div>
+
+        <p className="settings-version">Swifter v1.0 · Built with 💜 in South Africa</p>
       </div>
     </div>
   );
@@ -1731,14 +1928,40 @@ export default function SwifterApp() {
       <PhoneFrame>
         <div className={`app-shell ${dark ? "dark" : "light"}`}>
           <div className="loading-screen">
-            <div className="loading-logo">
-              <Icon3D src={ICON_MAP.wallet} alt="Swifter" size={64} />
+            <div className="loading-orb-wrap">
+              <div className="loading-orb-ring loading-orb-ring-1" />
+              <div className="loading-orb-ring loading-orb-ring-2" />
+              <div className="loading-orb-ring loading-orb-ring-3" />
+              <div className="loading-orb-core">
+                {/* Inline plasma logo */}
+                <svg className="brand-orbits" viewBox="0 0 44 44" width="52" height="52">
+                  <defs>
+                    <linearGradient id="lplasmaA" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.9" />
+                      <stop offset="100%" stopColor="#7c3aed" stopOpacity="0.5" />
+                    </linearGradient>
+                    <filter id="lplasmaGlow">
+                      <feGaussianBlur stdDeviation="1.2" result="blur" />
+                      <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                    </filter>
+                  </defs>
+                  <ellipse cx="22" cy="22" rx="19" ry="6" fill="none" stroke="url(#lplasmaA)" strokeWidth="1" transform="rotate(-35 22 22)" strokeDasharray="4 8" filter="url(#lplasmaGlow)" className="orbit orbit-1" />
+                  <ellipse cx="22" cy="22" rx="19" ry="6" fill="none" stroke="url(#lplasmaA)" strokeWidth="1" transform="rotate(25 22 22)" strokeDasharray="6 10" filter="url(#lplasmaGlow)" className="orbit orbit-2" />
+                  <ellipse cx="22" cy="22" rx="19" ry="6" fill="none" stroke="url(#lplasmaA)" strokeWidth="0.8" transform="rotate(80 22 22)" strokeDasharray="3 12" filter="url(#lplasmaGlow)" className="orbit orbit-3" />
+                  <circle cx="22" cy="22" r="3.5" fill="none" stroke="#06b6d4" strokeWidth="0.8" opacity="0.6" className="core-ring" />
+                  <circle cx="22" cy="22" r="2" fill="#a78bfa" opacity="0.95" />
+                  <circle cx="22" cy="22" r="1.1" fill="#ffffff" opacity="0.8" />
+                </svg>
+              </div>
             </div>
-            <h1 className="loading-title">Swifter</h1>
+            <h1 className="loading-title">SWIFTER</h1>
             <p className="loading-sub">Your money, simplified</p>
-            <div className="loading-spinner">
-              <div className="spinner-ring" />
+            <div className="loading-dots">
+              <span className="loading-dot-1" />
+              <span className="loading-dot-2" />
+              <span className="loading-dot-3" />
             </div>
+            <p className="loading-hint">Secured by PayGuard™</p>
           </div>
         </div>
       </PhoneFrame>
@@ -1839,7 +2062,15 @@ export default function SwifterApp() {
             </div>
           </div>
         )}
-        {toastMsg && <div className="smartsendr-toast">{toastMsg}</div>}
+        {toastMsg && (
+          <div className="premium-toast" role="alert">
+            <div className="premium-toast-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <span className="premium-toast-msg">{toastMsg}</span>
+            <div className="premium-toast-bar" />
+          </div>
+        )}
       </div>
     </PhoneFrame>
   );
