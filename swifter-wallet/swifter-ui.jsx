@@ -39,11 +39,11 @@ const TRANSACTIONS = [
 ];
 
 const CONTACTS = [
-  { id: "c1", name: "Sarah M.", avatar: "SM", gradient: "linear-gradient(135deg, #ec4899, #f472b6)" },
-  { id: "c2", name: "David K.", avatar: "DK", gradient: "linear-gradient(135deg, #3b82f6, #60a5fa)" },
-  { id: "c3", name: "Thabo N.", avatar: "TN", gradient: "linear-gradient(135deg, #10b981, #34d399)" },
-  { id: "c4", name: "Lisa P.", avatar: "LP", gradient: "linear-gradient(135deg, #f59e0b, #fbbf24)" },
-  { id: "c5", name: "James R.", avatar: "JR", gradient: "linear-gradient(135deg, #7c3aed, #a78bfa)" },
+  { id: "c1", name: "Sarah Mthembu", avatar: "SM", gradient: "linear-gradient(135deg, #ec4899, #f472b6)", phone: "082 456 7890", lastPayment: "2026-04-08" },
+  { id: "c2", name: "David Khumalo", avatar: "DK", gradient: "linear-gradient(135deg, #3b82f6, #60a5fa)", phone: "071 234 5678", lastPayment: "2026-03-25" },
+  { id: "c3", name: "Thabo Nkosi", avatar: "TN", gradient: "linear-gradient(135deg, #10b981, #34d399)", phone: "060 987 6543", lastPayment: "2026-04-01" },
+  { id: "c4", name: "Lisa Pretorius", avatar: "LP", gradient: "linear-gradient(135deg, #f59e0b, #fbbf24)", phone: "083 321 0987", lastPayment: "2026-03-18" },
+  { id: "c5", name: "James Ramaphosa", avatar: "JR", gradient: "linear-gradient(135deg, #7c3aed, #a78bfa)", phone: "073 654 3210", lastPayment: "2026-04-05" },
 ];
 
 const SPENDING = [
@@ -91,6 +91,57 @@ const ICON_MAP = {
 
 const formatCurrency = (amount) =>
   `R${Math.abs(amount).toLocaleString("en-ZA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+// Simple fuzzy name scorer — returns 0..1. Used by find_payee tool.
+function fuzzyScore(query, target) {
+  const q = query.toLowerCase().trim();
+  const t = target.toLowerCase();
+  if (t === q) return 1.0;
+  if (t.includes(q)) return 0.9;
+  const qWords = q.split(/\s+/);
+  const tWords = t.split(/\s+/);
+  let hits = 0;
+  for (const qw of qWords) {
+    if (tWords.some((tw) => tw.startsWith(qw) || qw.startsWith(tw))) hits++;
+  }
+  return hits / Math.max(qWords.length, 1);
+}
+
+// ─── Multilingual Swifter Agent Prompt ───────────────────────────────
+// Injected via overrides.agent.prompt.prompt when starting a session.
+// The prompt is self-contained so it works even if the ElevenLabs agent
+// dashboard prompt is empty or different.
+const SWIFTER_AGENT_PROMPT = `You are Swifter, a friendly and concise AI banking voice assistant built into the SwifterWallet app — a modern South African fintech platform.
+
+LANGUAGE RULE (critical): Always reply in the exact same language the user speaks.
+- If they greet you with "Sawubona" → respond in isiZulu
+- "Molo" or "Molweni" → isiXhosa
+- "Dumelang" or "Dumela" → Sesotho / Setswana
+- "Hallo" or "Goeiedag" → Afrikaans
+- English → English
+Maintain the chosen language for the entire conversation. Translate tool result values into the user's language when speaking them aloud.
+
+USER: {{user_name}} ({{user_full_name}})
+DATE: {{session_date}}
+WALLETS: {{wallets_summary}}
+
+AVAILABLE TOOLS:
+- find_payee(name) → fuzzy-search contacts; ALWAYS call this first before sending money to a person
+- send_money(amount, recipient_id, wallet?) → send money; use the id returned by find_payee
+- transfer_funds(from_wallet, to_wallet, amount) → move between wallets (main/savings/business)
+- add_funds(amount, wallet?) → top up a wallet
+- buy_airtime(phone_number, amount, network?) → buy prepaid airtime
+- pay_bill(bill_name) → pay an upcoming bill
+- check_balance(wallet?) → returns live balances (wallet: main | savings | business | all)
+- get_transactions(period?, type?, limit?) → query history (period: week|month|all; type: all|payments|deposits|transfers)
+- navigate_screen(screen) → open a screen (dashboard|wallets|send|addFunds|history|settings)
+
+RULES:
+1. For any payment by name: call find_payee first. If multiple matches, list them and ask user to confirm.
+2. Always confirm amount + recipient before executing send_money.
+3. Keep replies short — one or two sentences. No bullet points in speech.
+4. Amounts are always in South African Rand (ZAR). Say "R" before numbers.
+5. Never reveal internal tool names or JSON to the user.`;
 
 const formatTime = (dateStr) => {
   const d = new Date(dateStr);
@@ -186,6 +237,10 @@ export default function SwifterApp() {
   const [txFilter, setTxFilter] = useState("all");
   const [fadeIn, setFadeIn] = useState(false);
   const [slideUp, setSlideUp] = useState(false);
+
+  // ── Voice announcement state
+  const [incomingPayment, setIncomingPayment] = useState(null); // { sender, amount }
+  const LOW_BALANCE_THRESHOLD = 500;
 
   // ── Product integrations
   const [voiceOpen, setVoiceOpen] = useState(false);
@@ -593,42 +648,177 @@ export default function SwifterApp() {
   const voiceExecuteFunction = useCallback((name, args = {}) => {
     let result = {};
     switch (name) {
-      case "send_money":
-        result = { success: true, message: `Sent R${args.amount?.toFixed?.(2) ?? args.amount} to ${args.recipient}` };
-        setActionLog(prev => [...prev, `💸 Sent R${args.amount} to ${args.recipient}`]);
-        setToastMsg(`R${args.amount?.toFixed?.(2) ?? args.amount} sent to ${args.recipient}`);
-        break;
-      case "transfer_funds":
-        result = { success: true, message: `Transferred R${args.amount?.toFixed?.(2) ?? args.amount} from ${args.from_wallet} to ${args.to_wallet}` };
-        setActionLog(prev => [...prev, `🔄 R${args.amount} ${args.from_wallet} → ${args.to_wallet}`]);
-        setToastMsg(`R${args.amount?.toFixed?.(2) ?? args.amount} transferred`);
-        break;
-      case "add_funds":
-        result = { success: true, message: `Added R${args.amount?.toFixed?.(2) ?? args.amount}` };
-        setActionLog(prev => [...prev, `➕ Added R${args.amount}`]);
-        navigate("addFunds");
-        break;
-      case "buy_airtime":
-        result = { success: true, message: `R${args.amount} airtime for ${args.phone_number}` };
-        setActionLog(prev => [...prev, `📱 R${args.amount} airtime → ${args.phone_number}`]);
-        setToastMsg(`R${args.amount} airtime sent`);
-        break;
-      case "pay_bill":
-        result = { success: true, message: `${args.bill_name} paid` };
-        setActionLog(prev => [...prev, `📄 Paid ${args.bill_name}`]);
-        setToastMsg(`${args.bill_name} paid`);
-        break;
-      case "check_balance": {
-        const balances = { main: 24850, savings: 12420.5, business: 8390.75, all: 45661.25 };
-        const w = args.wallet || "all";
-        result = { balance: balances[w], wallet: w, formatted: `R${balances[w]?.toLocaleString("en-ZA", { minimumFractionDigits: 2 })}` };
+
+      // ── find_payee: fuzzy contact lookup ──────────────────────────
+      case "find_payee": {
+        const query = (args.name || "").trim();
+        if (!query) {
+          result = { matches: [], message: "Please provide a name to search." };
+          break;
+        }
+        const scored = CONTACTS
+          .map((c) => ({ contact: c, score: fuzzyScore(query, c.name) }))
+          .filter((x) => x.score > 0.25)
+          .sort((a, b) => b.score - a.score);
+
+        if (scored.length === 0) {
+          result = { matches: [], message: `No contacts found matching "${query}". Please ask the user to confirm the name.` };
+        } else if (scored.length === 1) {
+          const c = scored[0].contact;
+          result = {
+            matches: [{ id: c.id, name: c.name, phone: c.phone, lastPayment: c.lastPayment }],
+            message: `Found ${c.name} (${c.phone}). Last payment: ${c.lastPayment}.`,
+            exact: true,
+          };
+        } else {
+          result = {
+            matches: scored.slice(0, 3).map((x) => ({
+              id: x.contact.id,
+              name: x.contact.name,
+              phone: x.contact.phone,
+              lastPayment: x.contact.lastPayment,
+            })),
+            message: `Found ${scored.length} possible matches: ${scored.slice(0, 3).map((x) => x.contact.name).join(", ")}. Ask the user which one they meant.`,
+            exact: false,
+          };
+        }
+        setActionLog((prev) => [...prev, `🔍 Searched contacts for "${query}"`]);
         break;
       }
+
+      // ── get_transactions: history query ───────────────────────────
+      case "get_transactions": {
+        const limit = Math.min(Number(args.limit) || 5, 20);
+        const period = (args.period || "week").toLowerCase();
+        const txType = (args.type || "all").toLowerCase();
+
+        const now = new Date();
+        const cutoff =
+          period === "week"  ? new Date(now - 7 * 86400000)
+          : period === "month" ? new Date(now.getFullYear(), now.getMonth(), 1)
+          : new Date(0);
+
+        const filtered = TRANSACTIONS.filter((tx) => {
+          if (new Date(tx.date) < cutoff) return false;
+          if (txType === "payments")  return tx.type === "PAYMENT";
+          if (txType === "deposits")  return tx.type === "DEPOSIT";
+          if (txType === "transfers") return tx.type === "TRANSFER";
+          return true;
+        }).slice(0, limit);
+
+        const totalSpent    = filtered.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
+        const totalReceived = filtered.filter((t) => t.amount > 0).reduce((s, t) => s + t.amount, 0);
+        const txCount = filtered.length;
+
+        result = {
+          transactions: filtered.map((tx) => ({
+            description: tx.description,
+            amount: tx.amount,
+            formatted: `${tx.amount > 0 ? "+" : "-"}R${Math.abs(tx.amount).toFixed(2)}`,
+            date: tx.date,
+            type: tx.type.toLowerCase(),
+          })),
+          count: txCount,
+          totalSpent,
+          totalReceived,
+          period,
+          summary: txCount === 0
+            ? `No ${txType === "all" ? "" : txType + " "}transactions found this ${period}.`
+            : `This ${period}: ${txCount} transaction${txCount !== 1 ? "s" : ""}, spent R${totalSpent.toFixed(2)}, received R${totalReceived.toFixed(2)}.`,
+        };
+        setActionLog((prev) => [...prev, `📊 Fetched ${txCount} transaction${txCount !== 1 ? "s" : ""} (${period})`]);
+        break;
+      }
+
+      // ── send_money ─────────────────────────────────────────────────
+      case "send_money": {
+        const amt = args.amount ?? 0;
+        const fmtAmt = typeof amt === "number" ? amt.toFixed(2) : amt;
+        const recipientName = args.recipient || "recipient";
+        const mainWallet = WALLETS.find((w) => w.type === "MAIN");
+        const newBalance = mainWallet ? mainWallet.balance - amt : null;
+        result = {
+          success: true,
+          message: `R${fmtAmt} sent to ${recipientName}.${newBalance !== null ? ` Your Main Wallet balance is now R${newBalance.toFixed(2)}.` : ""}`,
+          new_balance: newBalance,
+          amount: amt,
+          recipient: recipientName,
+        };
+        setActionLog((prev) => [...prev, `💸 Sent R${fmtAmt} to ${recipientName}`]);
+        setToastMsg(`R${fmtAmt} sent to ${recipientName}`);
+        break;
+      }
+
+      // ── transfer_funds ─────────────────────────────────────────────
+      case "transfer_funds":
+        result = { success: true, message: `Transferred R${args.amount?.toFixed?.(2) ?? args.amount} from ${args.from_wallet} to ${args.to_wallet}.` };
+        setActionLog((prev) => [...prev, `🔄 R${args.amount} ${args.from_wallet} → ${args.to_wallet}`]);
+        setToastMsg(`R${args.amount?.toFixed?.(2) ?? args.amount} transferred`);
+        break;
+
+      // ── add_funds ──────────────────────────────────────────────────
+      case "add_funds":
+        result = { success: true, message: `Added R${args.amount?.toFixed?.(2) ?? args.amount} to your wallet.` };
+        setActionLog((prev) => [...prev, `➕ Added R${args.amount}`]);
+        navigate("addFunds");
+        break;
+
+      // ── buy_airtime ────────────────────────────────────────────────
+      case "buy_airtime":
+        result = { success: true, message: `R${args.amount} airtime sent to ${args.phone_number}.` };
+        setActionLog((prev) => [...prev, `📱 R${args.amount} airtime → ${args.phone_number}`]);
+        setToastMsg(`R${args.amount} airtime sent`);
+        break;
+
+      // ── pay_bill ───────────────────────────────────────────────────
+      case "pay_bill":
+        result = { success: true, message: `${args.bill_name} has been paid.` };
+        setActionLog((prev) => [...prev, `📄 Paid ${args.bill_name}`]);
+        setToastMsg(`${args.bill_name} paid`);
+        break;
+
+      // ── check_balance ──────────────────────────────────────────────
+      case "check_balance": {
+        const w = (args.wallet || "all").toLowerCase();
+        const walletByType = {
+          main:     WALLETS.find((x) => x.type === "MAIN"),
+          savings:  WALLETS.find((x) => x.type === "SAVINGS"),
+          business: WALLETS.find((x) => x.type === "BUSINESS"),
+        };
+        if (w === "all") {
+          const total = WALLETS.reduce((s, ww) => s + ww.balance, 0);
+          result = {
+            balances: WALLETS.map((ww) => ({
+              name: ww.name,
+              balance: ww.balance,
+              formatted: `R${ww.balance.toLocaleString("en-ZA", { minimumFractionDigits: 2 })}`,
+            })),
+            total,
+            formatted_total: `R${total.toLocaleString("en-ZA", { minimumFractionDigits: 2 })}`,
+            message: `Total balance: R${total.toLocaleString("en-ZA", { minimumFractionDigits: 2 })}. Main: R${walletByType.main?.balance.toFixed(2)}, Savings: R${walletByType.savings?.balance.toFixed(2)}, Business: R${walletByType.business?.balance.toFixed(2)}.`,
+          };
+        } else {
+          const wallet = walletByType[w];
+          result = wallet
+            ? {
+                wallet: wallet.name,
+                balance: wallet.balance,
+                formatted: `R${wallet.balance.toLocaleString("en-ZA", { minimumFractionDigits: 2 })}`,
+                message: `Your ${wallet.name} balance is R${wallet.balance.toLocaleString("en-ZA", { minimumFractionDigits: 2 })}.`,
+              }
+            : { error: `Wallet "${args.wallet}" not found. Valid options: main, savings, business, all.` };
+        }
+        setActionLog((prev) => [...prev, `💰 Checked ${w === "all" ? "all wallets" : w + " wallet"}`]);
+        break;
+      }
+
+      // ── navigate_screen ────────────────────────────────────────────
       case "navigate_screen":
         navigate(args.screen);
-        result = { success: true, message: `Navigated to ${args.screen}` };
-        setActionLog(prev => [...prev, `📱 Opened ${args.screen}`]);
+        result = { success: true, message: `Opened ${args.screen}.` };
+        setActionLog((prev) => [...prev, `📱 Opened ${args.screen}`]);
         break;
+
       default:
         result = { error: "Unknown function" };
     }
@@ -665,8 +855,11 @@ export default function SwifterApp() {
       // Mic permission up-front (SDK will re-use this stream internally)
       await navigator.mediaDevices.getUserMedia({ audio: true });
 
-      // Wallet summary (hardcoded demo data — swap for real fetch later)
-      const walletSummary = "Main (personal): R24,850.00; Savings: R12,420.50; Business: R8,390.75";
+      // Wallet summary built from live WALLETS data
+      const walletSummary = WALLETS.map((w) =>
+        `${w.name}: R${w.balance.toLocaleString("en-ZA", { minimumFractionDigits: 2 })}`
+      ).join("; ");
+      const totalBalance = WALLETS.reduce((s, w) => s + w.balance, 0);
 
       // Public vs private agent: if NEXT_PUBLIC_ELEVENLABS_AGENT_ID is
       // defined the browser connects directly; otherwise we fall back
@@ -677,19 +870,33 @@ export default function SwifterApp() {
           user_name: "Malcolm",
           user_full_name: "Malcolm Govender",
           is_authenticated: "true",
-          wallet_count: "3",
+          wallet_count: String(WALLETS.length),
           balance_currency: "ZAR",
-          balance_total: "45,661.25",
+          balance_total: totalBalance.toLocaleString("en-ZA", { minimumFractionDigits: 2 }),
           wallets_summary: walletSummary,
           session_date: new Date().toISOString().slice(0, 10),
         },
+        // Override the agent's system prompt so language auto-detection and
+        // all new tools are available regardless of what's configured in the
+        // ElevenLabs dashboard.
+        overrides: {
+          agent: {
+            prompt: { prompt: SWIFTER_AGENT_PROMPT },
+          },
+        },
         clientTools: {
-          send_money: (args) => voiceExecuteFunction("send_money", args),
-          transfer_funds: (args) => voiceExecuteFunction("transfer_funds", args),
-          add_funds: (args) => voiceExecuteFunction("add_funds", args),
-          buy_airtime: (args) => voiceExecuteFunction("buy_airtime", args),
-          pay_bill: (args) => voiceExecuteFunction("pay_bill", args),
-          check_balance: (args) => voiceExecuteFunction("check_balance", args),
+          // Contact resolution
+          find_payee:      (args) => voiceExecuteFunction("find_payee", args),
+          // Payments
+          send_money:      (args) => voiceExecuteFunction("send_money", args),
+          transfer_funds:  (args) => voiceExecuteFunction("transfer_funds", args),
+          add_funds:       (args) => voiceExecuteFunction("add_funds", args),
+          buy_airtime:     (args) => voiceExecuteFunction("buy_airtime", args),
+          pay_bill:        (args) => voiceExecuteFunction("pay_bill", args),
+          // Queries
+          check_balance:   (args) => voiceExecuteFunction("check_balance", args),
+          get_transactions:(args) => voiceExecuteFunction("get_transactions", args),
+          // Navigation
           navigate_screen: (args) => voiceExecuteFunction("navigate_screen", args),
         },
         onConnect: () => setVoiceStatus("listening"),
@@ -747,6 +954,49 @@ export default function SwifterApp() {
   useEffect(() => {
     return () => { if (peerRef.current) stopVoiceSession(); };
   }, [stopVoiceSession]);
+
+  // ─── announceVoice — Web Speech API fallback for proactive alerts ──
+  // Fires only when no ElevenLabs session is active so the two audio
+  // streams never overlap. Uses South-African English by default.
+  const announceVoice = useCallback((text) => {
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    if (elevenConvRef.current) return; // let active session handle speech
+    window.speechSynthesis.cancel(); // clear any queued utterances
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang = "en-ZA";
+    utt.rate = 0.95;
+    utt.pitch = 1.0;
+    window.speechSynthesis.speak(utt);
+  }, []);
+
+  // ─── Low-balance warning — fires once on load ─────────────────────
+  useEffect(() => {
+    const low = WALLETS.filter((w) => w.balance < LOW_BALANCE_THRESHOLD);
+    if (low.length === 0) return;
+    const wallet = low[0];
+    const msg = `Heads up — your ${wallet.name} is below R${LOW_BALANCE_THRESHOLD}`;
+    const t = setTimeout(() => {
+      setToastMsg(`⚠️ ${msg}`);
+      announceVoice(msg);
+    }, 3000);
+    return () => clearTimeout(t);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ─── Simulated incoming payment (demo) ────────────────────────────
+  // In production this would be driven by a real-time webhook / push.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const sender = CONTACTS[Math.floor(Math.random() * CONTACTS.length)];
+      const amount = [100, 250, 500, 750, 1000][Math.floor(Math.random() * 5)];
+      const firstName = sender.name.split(" ")[0];
+      const msg = `You just received R${amount} from ${firstName}`;
+      setIncomingPayment({ sender: firstName, amount });
+      setToastMsg(`💸 ${msg}`);
+      announceVoice(msg);
+      setTimeout(() => setIncomingPayment(null), 6000);
+    }, 18000); // fire 18 s after load — visible in a short demo session
+    return () => clearTimeout(t);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Toast Notification (SmartSendr) ──────────────────────────────
 
@@ -1510,6 +1760,16 @@ export default function SwifterApp() {
           {screen === "manageCards" && <ManageCardsScreen />}
         </div>
         {!["send", "addFunds", "manageCards"].includes(screen) && <TabBar />}
+        {/* Incoming Payment Banner */}
+        {incomingPayment && (
+          <div className="incoming-payment-banner" onClick={() => setIncomingPayment(null)}>
+            <span className="incoming-payment-icon">💸</span>
+            <div className="incoming-payment-text">
+              <strong>Payment received</strong>
+              <span>R{incomingPayment.amount} from {incomingPayment.sender}</span>
+            </div>
+          </div>
+        )}
         {/* Voice Co-Pilot Overlay */}
         {voiceOpen && (
           <div className="voice-overlay" onClick={() => { stopVoiceSession(); setVoiceOpen(false); }}>
@@ -1550,9 +1810,17 @@ export default function SwifterApp() {
               {voiceStatus === "idle" && (
                 <div className="voice-suggestions">
                   <p className="voice-suggest-label">Try saying:</p>
-                  {["Send R500 to Sarah", "What's my balance?", "Pay my Netflix bill", "Buy R29 airtime for 082 123 4567"].map((s, i) => (
+                  {[
+                    "Send R500 to Sarah",
+                    "What's my balance?",
+                    "Show my last 5 transactions",
+                    "Pay my Netflix bill",
+                    "Sawubona, thumela u-R200 ku-Thabo", // isiZulu
+                    "Wat is my saldo?",                    // Afrikaans
+                  ].map((s, i) => (
                     <button key={i} className="voice-suggest-chip" onClick={() => { setTranscript(s); startVoiceSession(); }}>{s}</button>
                   ))}
+                  <p className="voice-suggest-lang-note">🌍 Responds in your language — Zulu, Xhosa, Sotho, Afrikaans, English</p>
                 </div>
               )}
               {voiceStatus === "idle" ? (

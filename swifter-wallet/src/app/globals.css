@@ -3649,3 +3649,65 @@ input { font-family: inherit; }
   0% { transform: translateX(-50%) translateY(20px); opacity: 0; }
   100% { transform: translateX(-50%) translateY(0); opacity: 1; }
 }
+
+/* ─── Incoming Payment Banner ──────────────────────────────────────── */
+
+.incoming-payment-banner {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: linear-gradient(135deg, #065f46 0%, #10b981 100%);
+  color: white;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-xl, 1rem);
+  font-size: 0.82rem;
+  font-weight: 600;
+  z-index: 400;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.45);
+  animation: bannerSlideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer;
+  max-width: calc(100% - 2rem);
+  width: max-content;
+}
+
+.incoming-payment-icon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.incoming-payment-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.incoming-payment-text strong {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.85;
+}
+
+.incoming-payment-text span {
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+@keyframes bannerSlideDown {
+  0%   { transform: translateX(-50%) translateY(-60px); opacity: 0; }
+  100% { transform: translateX(-50%) translateY(0);     opacity: 1; }
+}
+
+/* ─── Voice suggestions — language note ───────────────────────────── */
+
+.voice-suggest-lang-note {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.45);
+  text-align: center;
+  margin-top: 0.5rem;
+  letter-spacing: 0.01em;
+}
