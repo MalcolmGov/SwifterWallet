@@ -58,7 +58,8 @@ export const groupTransactionsByDate = (transactions) => {
   return groups;
 };
 
-export const computeWellnessScore = (walletsData = WALLETS) => {
+export const computeWellnessScore = (walletsData) => {
+  if (!walletsData) walletsData = WALLETS;
   // Metric 1: Savings allocation (0–25)
   const totalBal = walletsData.reduce((s, w) => s + w.balance, 0);
   const savingsWalletBal = walletsData.find((w) => w.type === "SAVINGS")?.balance || 0;
@@ -103,7 +104,8 @@ export const computeWellnessScore = (walletsData = WALLETS) => {
   };
 };
 
-export const computeInsights = (walletsData = WALLETS) => {
+export const computeInsights = (walletsData) => {
+  if (!walletsData) walletsData = WALLETS;
   const totalBal = walletsData.reduce((s, w) => s + w.balance, 0);
   const savingsWalletBal = walletsData.find((w) => w.type === "SAVINGS")?.balance || 0;
   const savingsPct = Math.round((savingsWalletBal / totalBal) * 100);
