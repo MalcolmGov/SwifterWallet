@@ -17,7 +17,7 @@
     "seed": "npx tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@elevenlabs/client": "^0.8.0",
+    "@elevenlabs/client": "^1.2.1",
     "@prisma/adapter-pg": "^7.7.0",
     "@prisma/client": "^7.7.0",
     "@tailwindcss/postcss": "^4.2.2",
