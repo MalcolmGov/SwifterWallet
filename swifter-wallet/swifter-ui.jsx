@@ -89,6 +89,133 @@ const DEFAULT_SAVED_CARDS = [
   { id: "card2", brand: "Mastercard", last4: "8834", expiry: "03/27", holder: "Malcolm Govender", gradient: "linear-gradient(135deg, #b91c1c 0%, #ef4444 50%, #f87171 100%)" },
 ];
 
+// ─── Smart Notification Queue ────────────────────────────────────────
+
+const SMART_NOTIFS = [
+  {
+    id: "salary",
+    icon: "💰",
+    title: "Salary received!",
+    body: "R42,000 from Accenture SA — auto-split into savings, bills & spending?",
+    color: "#10b981",
+    action: "Set Up Auto-Split",
+    delay: 5000,
+  },
+  {
+    id: "transport-spike",
+    icon: "🚗",
+    title: "Spending spike detected",
+    body: "Transport spending up 45% this week — R739 vs R510 avg",
+    color: "#f59e0b",
+    action: "View Breakdown",
+    delay: 16000,
+  },
+];
+
+// ─── Wellness Score Calculator ────────────────────────────────────────
+
+const computeWellnessScore = () => {
+  // Metric 1: Savings allocation (0–25)
+  const totalBal = WALLETS.reduce((s, w) => s + w.balance, 0);
+  const savingsWalletBal = WALLETS.find((w) => w.type === "SAVINGS")?.balance || 0;
+  const savingsPct = totalBal > 0 ? (savingsWalletBal / totalBal) * 100 : 0; // ~27%
+  const s1 = Math.round(Math.min(25, Math.max(0, (savingsPct / 30) * 25)));  // target 30%
+
+  // Metric 2: Spending discipline (0–25)
+  const essentialSpend = SPENDING
+    .filter((s) => ["Bills & Utilities", "Food & Dining"].includes(s.category))
+    .reduce((a, s) => a + s.amount, 0);
+  const totalSpend = SPENDING.reduce((a, s) => a + s.amount, 0);
+  const ratio = totalSpend > 0 ? essentialSpend / totalSpend : 0.5; // ~55%
+  const s2 = ratio >= 0.4 && ratio <= 0.65 ? 20 : ratio > 0.65 ? Math.round(20 - (ratio - 0.65) * 40) : Math.round((ratio / 0.4) * 20);
+
+  // Metric 3: Bill timeliness (0–25)
+  const today = new Date();
+  const overdueCount = UPCOMING_BILLS.filter((b) => new Date(b.due) < today).length;
+  const s3 = Math.max(0, 25 - overdueCount * 10); // all on time → 25
+
+  // Metric 4: Balance trend (0–25)
+  const s4 = 15; // +12.5% trend shown on dashboard
+
+  const total = s1 + s2 + s3 + s4;
+  const label = total >= 85 ? "Excellent" : total >= 70 ? "Good" : total >= 50 ? "Fair" : "Needs Attention";
+  const color = total >= 85 ? "#10b981" : total >= 70 ? "#06b6d4" : total >= 50 ? "#f59e0b" : "#ef4444";
+  const gradStart = total >= 85 ? "#10b981" : total >= 70 ? "#7c3aed" : total >= 50 ? "#f59e0b" : "#ef4444";
+  const gradEnd = total >= 85 ? "#34d399" : total >= 70 ? "#06b6d4" : total >= 50 ? "#fbbf24" : "#f87171";
+
+  return {
+    score: total,
+    label,
+    color,
+    gradStart,
+    gradEnd,
+    savingsPct: Math.round(savingsPct),
+    breakdown: [
+      { label: "Savings", score: s1, max: 25, color: "#10b981" },
+      { label: "Spending", score: s2, max: 25, color: "#7c3aed" },
+      { label: "Bills", score: s3, max: 25, color: "#06b6d4" },
+      { label: "Trend", score: s4, max: 25, color: "#f59e0b" },
+    ],
+  };
+};
+
+// ─── Personalized Insights Builder ───────────────────────────────────
+
+const computeInsights = () => {
+  const totalBal = WALLETS.reduce((s, w) => s + w.balance, 0);
+  const savingsWalletBal = WALLETS.find((w) => w.type === "SAVINGS")?.balance || 0;
+  const savingsPct = Math.round((savingsWalletBal / totalBal) * 100);
+
+  const refDate = new Date("2026-04-14");
+  const nextBill = UPCOMING_BILLS
+    .map((b) => ({ ...b, daysLeft: Math.ceil((new Date(b.due) - refDate) / 86400000) }))
+    .filter((b) => b.daysLeft >= 0)
+    .sort((a, b) => a.daysLeft - b.daysLeft)[0];
+
+  const holidayGoal = SAVINGS_GOALS.find((g) => g.name === "Holiday Fund");
+  const holidayPct = holidayGoal ? Math.round((holidayGoal.saved / holidayGoal.target) * 100) : 0;
+  const foodSpend = SPENDING.find((s) => s.category === "Food & Dining")?.amount || 0;
+
+  return [
+    {
+      id: "food-spike",
+      icon: "🍽️",
+      title: "Food & Dining alert",
+      body: `R${foodSpend.toLocaleString()} spent — 30% above your monthly average`,
+      color: "#f59e0b",
+      accent: "rgba(245,158,11,0.12)",
+      type: "warning",
+    },
+    {
+      id: "savings-rate",
+      icon: "🏦",
+      title: `Savings rate ${savingsPct}%`,
+      body: `You're saving above the 20% recommended rate — keep it up!`,
+      color: "#10b981",
+      accent: "rgba(16,185,129,0.12)",
+      type: "positive",
+    },
+    nextBill && {
+      id: "next-bill",
+      icon: nextBill.icon,
+      title: `${nextBill.name} due ${nextBill.daysLeft <= 1 ? "tomorrow" : `in ${nextBill.daysLeft} days`}`,
+      body: `R${nextBill.amount} — funds ready in your Main Wallet`,
+      color: nextBill.accent,
+      accent: `color-mix(in srgb, ${nextBill.accent} 15%, transparent)`,
+      type: "info",
+    },
+    holidayGoal && {
+      id: "holiday-goal",
+      icon: holidayGoal.icon,
+      title: `Holiday Fund ${holidayPct}% complete`,
+      body: `On track to hit R${(holidayGoal.target / 1000).toFixed(0)}k by August`,
+      color: "#06b6d4",
+      accent: "rgba(6,182,212,0.12)",
+      type: "positive",
+    },
+  ].filter(Boolean);
+};
+
 // ─── Icon map ────────────────────────────────────────────────────────
 
 const ICON_MAP = {
@@ -152,6 +279,7 @@ AVAILABLE TOOLS:
 - pay_bill(bill_name) → pay an upcoming bill
 - check_balance(wallet?) → returns live balances (wallet: main | savings | business | all)
 - get_transactions(period?, type?, limit?) → query history (period: week|month|all; type: all|payments|deposits|transfers)
+- get_financial_health() → returns financial wellness score (0–100), label, and personalised insights
 - navigate_screen(screen) → open a screen (dashboard|wallets|send|addFunds|history|settings)
 
 RULES:
@@ -159,7 +287,8 @@ RULES:
 2. Always confirm amount + recipient before executing send_money.
 3. Keep replies short — one or two sentences. No bullet points in speech.
 4. Amounts are always in South African Rand (ZAR). Say "R" before numbers.
-5. Never reveal internal tool names or JSON to the user.`;
+5. Never reveal internal tool names or JSON to the user.
+6. If the user asks about their financial health, wellness score, how they're doing financially, or anything similar → call get_financial_health.`;
 
 const formatTime = (dateStr) => {
   const d = new Date(dateStr);
@@ -265,6 +394,179 @@ const TransactionIcon = ({ type }) => {
   );
 };
 
+// ─── Smart Notification Banner ────────────────────────────────────────
+
+function SmartNotifBanner({ notif, onDismiss, onAction }) {
+  return (
+    <div className="smart-notif-banner" style={{ "--notif-color": notif.color }}>
+      <div className="smart-notif-glow" />
+      <span className="smart-notif-icon">{notif.icon}</span>
+      <div className="smart-notif-text">
+        <strong className="smart-notif-title">{notif.title}</strong>
+        <span className="smart-notif-body">{notif.body}</span>
+      </div>
+      <div className="smart-notif-actions">
+        <button className="smart-notif-action-btn" onClick={onAction} style={{ color: notif.color }}>
+          {notif.action}
+        </button>
+        <button className="smart-notif-dismiss" onClick={onDismiss}>✕</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Financial Wellness Section ───────────────────────────────────────
+
+function WellnessSection({ slideUp }) {
+  const [animated, setAnimated] = useState(false);
+  const [displayScore, setDisplayScore] = useState(0);
+  const wellness = computeWellnessScore();
+  const insights = computeInsights();
+
+  useEffect(() => {
+    const t = setTimeout(() => setAnimated(true), 400);
+    return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    if (!animated) return;
+    const target = wellness.score;
+    let start = null;
+    const duration = 1600;
+    const tick = (ts) => {
+      if (!start) start = ts;
+      const p = Math.min((ts - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setDisplayScore(Math.round(eased * target));
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    const raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [animated, wellness.score]);
+
+  const radius = 52;
+  const circumference = 2 * Math.PI * radius;
+  const dashOffset = animated ? circumference - (wellness.score / 100) * circumference : circumference;
+
+  return (
+    <>
+      {/* Wellness Score Card */}
+      <div className={`section ${slideUp ? "slide-visible" : ""}`} style={{ transitionDelay: "200ms" }}>
+        <div className="section-header">
+          <h3 className="section-title">Financial Health</h3>
+          <span className="wellness-updated-badge">Updated today</span>
+        </div>
+        <div className="wellness-card">
+          {/* Animated circular gauge */}
+          <div className="wellness-gauge-area">
+            <svg width="140" height="140" viewBox="0 0 140 140" className="wellness-gauge-svg">
+              <defs>
+                <linearGradient id="wellnessGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor={wellness.gradStart} />
+                  <stop offset="100%" stopColor={wellness.gradEnd} />
+                </linearGradient>
+                <filter id="wellnessGlow">
+                  <feGaussianBlur stdDeviation="3" result="blur" />
+                  <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                </filter>
+                <filter id="wellnessGlowStrong">
+                  <feGaussianBlur stdDeviation="5" result="blur" />
+                  <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                </filter>
+              </defs>
+              {/* Outer decorative ring */}
+              <circle cx="70" cy="70" r="66" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
+              {/* Track */}
+              <circle cx="70" cy="70" r={radius} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10" />
+              {/* Filled arc */}
+              <circle
+                cx="70" cy="70" r={radius}
+                fill="none"
+                stroke="url(#wellnessGrad)"
+                strokeWidth="10"
+                strokeLinecap="round"
+                strokeDasharray={circumference}
+                strokeDashoffset={dashOffset}
+                transform="rotate(-90 70 70)"
+                filter="url(#wellnessGlow)"
+                style={{ transition: "stroke-dashoffset 1.6s cubic-bezier(0.34, 1.56, 0.64, 1)" }}
+              />
+              {/* Glow dot at tip */}
+              {animated && (
+                <circle
+                  cx={70 + radius * Math.cos(-Math.PI / 2 + (wellness.score / 100) * 2 * Math.PI)}
+                  cy={70 + radius * Math.sin(-Math.PI / 2 + (wellness.score / 100) * 2 * Math.PI)}
+                  r="5" fill={wellness.gradEnd}
+                  filter="url(#wellnessGlowStrong)"
+                  opacity="0.9"
+                />
+              )}
+            </svg>
+            <div className="wellness-gauge-center">
+              <span className="wellness-score-num">{displayScore}</span>
+              <span className="wellness-score-label" style={{ color: wellness.color }}>{wellness.label}</span>
+            </div>
+          </div>
+
+          {/* Breakdown bars */}
+          <div className="wellness-breakdown">
+            {wellness.breakdown.map((b, i) => (
+              <div key={b.label} className="wellness-bar-item">
+                <div className="wellness-bar-header">
+                  <span className="wellness-bar-label">{b.label}</span>
+                  <span className="wellness-bar-score" style={{ color: b.color }}>{b.score}/{b.max}</span>
+                </div>
+                <div className="wellness-bar-bg">
+                  <div
+                    className="wellness-bar-fill"
+                    style={{
+                      width: animated ? `${(b.score / b.max) * 100}%` : "0%",
+                      background: b.color,
+                      boxShadow: `0 0 8px ${b.color}60`,
+                      transition: `width 1.3s cubic-bezier(0.34,1.56,0.64,1) ${i * 120 + 200}ms`,
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Personalised Insights — horizontal scroll */}
+      <div className={`section ${slideUp ? "slide-visible" : ""}`} style={{ transitionDelay: "350ms" }}>
+        <div className="section-header">
+          <h3 className="section-title">Personalised Insights</h3>
+          <span className="section-subtitle">For you</span>
+        </div>
+        <div className="insights-scroll">
+          {insights.map((ins, i) => (
+            <div
+              key={ins.id}
+              className="insight-card"
+              style={{ "--ins-color": ins.color, "--ins-accent": ins.accent, animationDelay: `${i * 90}ms` }}
+            >
+              <div className="insight-card-top">
+                <div className="insight-icon-wrap" style={{ background: ins.accent }}>
+                  <span className="insight-icon">{ins.icon}</span>
+                </div>
+                <span className={`insight-badge insight-badge-${ins.type}`}>
+                  {ins.type === "warning" ? "↑" : ins.type === "positive" ? "✓" : "i"}
+                </span>
+              </div>
+              <p className="insight-title">{ins.title}</p>
+              <p className="insight-body">{ins.body}</p>
+              <div className="insight-footer">
+                <span className="insight-action" style={{ color: ins.color }}>View details →</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
 // ─── Main App ────────────────────────────────────────────────────────
 
 export default function SwifterApp() {
@@ -291,6 +593,10 @@ export default function SwifterApp() {
   // ── Voice announcement state
   const [incomingPayment, setIncomingPayment] = useState(null); // { sender, amount }
   const LOW_BALANCE_THRESHOLD = 500;
+
+  // ── Smart contextual notifications
+  const [activeNotif, setActiveNotif] = useState(null);
+  const [dismissedNotifs, setDismissedNotifs] = useState(new Set());
 
   // ── Product integrations
   const [voiceOpen, setVoiceOpen] = useState(false);
@@ -492,6 +798,15 @@ export default function SwifterApp() {
         </div>
       </div>
 
+      {/* Smart Contextual Notification Banner */}
+      {activeNotif && (
+        <SmartNotifBanner
+          notif={activeNotif}
+          onDismiss={handleDismissNotif}
+          onAction={handleDismissNotif}
+        />
+      )}
+
       {/* Quick Actions — 3D Orb Grid */}
       <div className={`action-orbs ${slideUp ? "slide-visible delay-1" : ""}`}>
         <h3 className="action-orbs-title">Quick Actions</h3>
@@ -517,6 +832,9 @@ export default function SwifterApp() {
           ))}
         </div>
       </div>
+
+      {/* Financial Wellness Score + Personalised Insights */}
+      <WellnessSection slideUp={slideUp} />
 
       {/* Wallet Mini-Strip */}
       <div className={`section ${slideUp ? "slide-visible delay-2" : ""}`}>
@@ -902,6 +1220,28 @@ export default function SwifterApp() {
         setActionLog((prev) => [...prev, `📱 Opened ${args.screen}`]);
         break;
 
+      // ── get_financial_health ───────────────────────────────────────
+      case "get_financial_health": {
+        const w = computeWellnessScore();
+        const topInsight = computeInsights()[0];
+        result = {
+          score: w.score,
+          label: w.label,
+          savingsPct: w.savingsPct,
+          breakdown: w.breakdown.map((b) => `${b.label}: ${b.score}/${b.max}`).join(", "),
+          topInsight: topInsight?.body || "",
+          message:
+            `Your Financial Wellness Score is ${w.score} out of 100 — that's ${w.label}! ` +
+            `Your savings allocation is ${w.savingsPct}%, which is ${w.savingsPct >= 20 ? "above average" : "below the 20% target"}. ` +
+            `All your bills are on time and your balance is trending upward. ` +
+            (w.score >= 80
+              ? "You're doing great — keep it up!"
+              : "Boosting your monthly savings transfer would lift your score to Excellent."),
+        };
+        setActionLog((prev) => [...prev, `📊 Financial health: ${w.score}/100 (${w.label})`]);
+        break;
+      }
+
       default:
         result = { error: "Unknown function" };
     }
@@ -994,8 +1334,9 @@ export default function SwifterApp() {
           buy_airtime:     (args) => voiceExecuteFunction("buy_airtime", args),
           pay_bill:        (args) => voiceExecuteFunction("pay_bill", args),
           // Queries
-          check_balance:   (args) => voiceExecuteFunction("check_balance", args),
-          get_transactions:(args) => voiceExecuteFunction("get_transactions", args),
+          check_balance:      (args) => voiceExecuteFunction("check_balance", args),
+          get_transactions:   (args) => voiceExecuteFunction("get_transactions", args),
+          get_financial_health: (args) => voiceExecuteFunction("get_financial_health", args),
           // Navigation
           navigate_screen: (args) => voiceExecuteFunction("navigate_screen", args),
         },
@@ -1105,6 +1446,34 @@ export default function SwifterApp() {
     const t = setTimeout(() => setToastMsg(""), 3500);
     return () => clearTimeout(t);
   }, [toastMsg]);
+
+  // ─── Smart Notification Queue (demo — fires on load) ───────────────
+
+  useEffect(() => {
+    const timers = [];
+    SMART_NOTIFS.forEach((notif) => {
+      timers.push(
+        setTimeout(() => {
+          setActiveNotif((prev) => {
+            // Only show if nothing is active and this hasn't been dismissed
+            if (prev) return prev;
+            return notif;
+          });
+        }, notif.delay)
+      );
+    });
+    return () => timers.forEach(clearTimeout);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // When activeNotif is dismissed, show next queued one after a pause
+  const handleDismissNotif = useCallback(() => {
+    setDismissedNotifs((prev) => {
+      const next = new Set(prev);
+      if (activeNotif) next.add(activeNotif.id);
+      return next;
+    });
+    setActiveNotif(null);
+  }, [activeNotif]);
 
   // ─── Wallets Screen ─────────────────────────────────────────────
 
@@ -2144,6 +2513,7 @@ export default function SwifterApp() {
                 <div className="voice-suggestions">
                   <p className="voice-suggest-label">Try saying:</p>
                   {[
+                    "What's my financial health?",
                     "Send R500 to Sarah",
                     "What's my balance?",
                     "Show my last 5 transactions",
