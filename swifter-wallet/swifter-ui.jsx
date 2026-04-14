@@ -216,6 +216,35 @@ const computeInsights = () => {
   ].filter(Boolean);
 };
 
+// ─── Gamification Data ───────────────────────────────────────────────
+
+const ACHIEVEMENTS = [
+  { id: "first_payment",   name: "First Payment",   icon: "💸", desc: "Sent your first payment",                    unlocked: true,  unlockedDate: "Apr 8",  pts: 50,  color: "#7c3aed" },
+  { id: "savings_starter", name: "Savings Starter", icon: "🌱", desc: "Saved R1,000+",                              unlocked: true,  unlockedDate: "Apr 10", pts: 75,  color: "#10b981" },
+  { id: "streak_master",   name: "Streak Master",   icon: "🔥", desc: "7 days of consistent saving",               unlocked: true,  unlockedDate: "Apr 14", pts: 100, color: "#f59e0b" },
+  { id: "voice_pioneer",   name: "Voice Pioneer",   icon: "🎙️", desc: "Used voice assistant for a transaction",   unlocked: false, pts: 60,  color: "#06b6d4" },
+  { id: "biometric_boss",  name: "Biometric Boss",  icon: "🔐", desc: "Enabled biometric authentication",          unlocked: false, pts: 80,  color: "#ec4899" },
+  { id: "globe_trotter",   name: "Globe Trotter",   icon: "🌍", desc: "Used multi-currency wallet",               unlocked: false, pts: 90,  color: "#3b82f6" },
+  { id: "social_butterfly",name: "Social Butterfly",icon: "🦋", desc: "Referred 3 friends",                        unlocked: false, pts: 150, color: "#f43f5e" },
+];
+
+const REFERRALS = [
+  { id: "r1", name: "Sipho Ndlovu",    avatar: "SN", gradient: "linear-gradient(135deg, #7c3aed, #a78bfa)", status: "reward_earned",     date: "Apr 8",  reward: 50 },
+  { id: "r2", name: "Kefilwe Dlamini", avatar: "KD", gradient: "linear-gradient(135deg, #10b981, #34d399)", status: "first_transaction", date: "Apr 11", reward: 0  },
+  { id: "r3", name: "Ryan Peters",     avatar: "RP", gradient: "linear-gradient(135deg, #f59e0b, #fbbf24)", status: "signed_up",         date: "Apr 13", reward: 0  },
+];
+
+const XP_EVENTS = [
+  { action: "Referred Sipho Ndlovu",    pts: 100, icon: "🦋", date: "6 days ago" },
+  { action: "Added to Savings Goal",    pts: 20,  icon: "🌱", date: "5 days ago" },
+  { action: "Added to Savings Goal",    pts: 20,  icon: "🌱", date: "4 days ago" },
+  { action: "Sent payment to Sarah",    pts: 10,  icon: "💸", date: "3 days ago" },
+  { action: "Added to Savings Goal",    pts: 20,  icon: "🌱", date: "2 days ago" },
+  { action: "Sent payment to David",    pts: 10,  icon: "💸", date: "Yesterday" },
+  { action: "Unlocked Streak Master 🔥",pts: 100, icon: "🏆", date: "Today" },
+  { action: "Added to Savings Goal",    pts: 20,  icon: "🌱", date: "Today" },
+];
+
 // ─── Icon map ────────────────────────────────────────────────────────
 
 const ICON_MAP = {
@@ -373,6 +402,11 @@ const ClockIcon = ({ active }) => (
 );
 const SettingsIcon = ({ active }) => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? "#7c3aed" : "currentColor"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+);
+const RewardsNavIcon = ({ active }) => (
+  <svg width="28" height="28" viewBox="0 0 24 24" fill={active ? "rgba(124,58,237,0.15)" : "none"} stroke={active ? "#c4b5fd" : "rgba(255,255,255,0.55)"} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+  </svg>
 );
 
 // ─── Transaction Icon ────────────────────────────────────────────────
@@ -620,6 +654,17 @@ export default function SwifterApp() {
   const [notifEnabled, setNotifEnabled] = useState(true);
   const [toastMsg, setToastMsg] = useState("");
 
+  // ── Gamification
+  const [xpPoints] = useState(1240);
+  const savingsStreak = 12;
+  const [rewardsTab, setRewardsTab] = useState("badges");
+  const [newlyUnlocked, setNewlyUnlocked] = useState(null);
+  const [referralCopied, setReferralCopied] = useState(false);
+  const REFERRAL_CODE = "SWIFTER-MG42";
+  const XP_LEVEL = Math.floor(xpPoints / 500) + 1;
+  const XP_IN_LEVEL = xpPoints % 500;
+  const XP_TO_NEXT = 500;
+
   // ── Biometric security
   const [biometricEnabled, setBiometricEnabled] = useState(() =>
     typeof window !== "undefined" ? localStorage.getItem("bioEnabled") === "true" : false
@@ -806,6 +851,19 @@ export default function SwifterApp() {
           onAction={handleDismissNotif}
         />
       )}
+
+      {/* Streak + XP Banner */}
+      <div className={`dash-streak-row ${slideUp ? "slide-visible" : ""}`}>
+        <button className="dash-streak-chip" onClick={() => navigate("rewards")}>
+          <span className="dash-streak-flame">🔥</span>
+          <span className="dash-streak-text"><strong>{savingsStreak} day</strong> streak</span>
+        </button>
+        <button className="dash-xp-chip" onClick={() => navigate("rewards")}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#f59e0b" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <span className="dash-xp-text">{xpPoints} XP</span>
+          <span className="dash-xp-level">Lv {XP_LEVEL}</span>
+        </button>
+      </div>
 
       {/* Quick Actions — 3D Orb Grid */}
       <div className={`action-orbs ${slideUp ? "slide-visible delay-1" : ""}`}>
@@ -2294,18 +2352,334 @@ export default function SwifterApp() {
     </div>
   );
 
+  // ─── Rewards Screen ──────────────────────────────────────────────
+
+  const referralStatusStages = ["invited", "signed_up", "first_transaction", "reward_earned"];
+  const referralStatusLabels = { invited: "Invited", signed_up: "Signed Up", first_transaction: "First Transaction", reward_earned: "Reward Earned" };
+  const referralStatusColors = { invited: "#71717a", signed_up: "#3b82f6", first_transaction: "#f59e0b", reward_earned: "#10b981" };
+
+  const handleCopyReferral = () => {
+    const link = `https://swifter.app/join?ref=${REFERRAL_CODE}`;
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(link).then(() => {
+        setReferralCopied(true);
+        setToastMsg("Referral link copied! 🎉");
+        setTimeout(() => setReferralCopied(false), 2500);
+      });
+    }
+  };
+
+  const RewardsScreen = () => (
+    <div className={`screen-fade ${fadeIn ? "visible" : ""}`} style={{ paddingBottom: "6rem" }}>
+      {/* Header */}
+      <div className="sub-header">
+        <div className="sub-header-inner">
+          <div className="sub-header-left">
+            <div className="rewards-header-icon">⭐</div>
+            <div>
+              <h2 className="sub-header-title">Rewards</h2>
+              <p className="sub-header-subtitle">Level {XP_LEVEL} · {xpPoints} XP</p>
+            </div>
+          </div>
+        </div>
+        {/* XP Level Progress Bar */}
+        <div className="xp-level-bar-wrap">
+          <div className="xp-level-labels">
+            <span className="xp-level-tag">Lv {XP_LEVEL}</span>
+            <span className="xp-level-progress-text">{XP_IN_LEVEL} / {XP_TO_NEXT} XP to Level {XP_LEVEL + 1}</span>
+            <span className="xp-level-tag">Lv {XP_LEVEL + 1}</span>
+          </div>
+          <div className="xp-level-bar-bg">
+            <div
+              className="xp-level-bar-fill"
+              style={{ width: `${(XP_IN_LEVEL / XP_TO_NEXT) * 100}%` }}
+            />
+            <div className="xp-level-bar-glow" style={{ left: `${(XP_IN_LEVEL / XP_TO_NEXT) * 100}%` }} />
+          </div>
+        </div>
+      </div>
+
+      {/* Streak banner */}
+      <div className="rewards-streak-card">
+        <div className="rewards-streak-flame-wrap">
+          <span className="rewards-streak-flame">🔥</span>
+          <div className="rewards-streak-ring" />
+        </div>
+        <div className="rewards-streak-info">
+          <p className="rewards-streak-count">{savingsStreak} day savings streak!</p>
+          <p className="rewards-streak-sub">Keep saving daily to maintain your streak</p>
+        </div>
+        <div className="rewards-streak-pts">+20 XP/day</div>
+      </div>
+
+      {/* Tab switcher */}
+      <div className="rewards-tabs-row">
+        <button
+          className={`rewards-tab-btn ${rewardsTab === "badges" ? "rewards-tab-active" : ""}`}
+          onClick={() => setRewardsTab("badges")}
+        >
+          🏆 Badges
+        </button>
+        <button
+          className={`rewards-tab-btn ${rewardsTab === "referral" ? "rewards-tab-active" : ""}`}
+          onClick={() => setRewardsTab("referral")}
+        >
+          🎁 Refer & Earn
+        </button>
+      </div>
+
+      {/* ── Badges Tab ── */}
+      {rewardsTab === "badges" && (
+        <>
+          <div style={{ padding: "0 1.25rem" }}>
+            <div className="section-header" style={{ marginBottom: "0.75rem" }}>
+              <h3 className="section-title">Achievement Badges</h3>
+              <span className="xp-unlocked-count">
+                {ACHIEVEMENTS.filter(a => a.unlocked).length}/{ACHIEVEMENTS.length} unlocked
+              </span>
+            </div>
+            <div className="badges-grid">
+              {ACHIEVEMENTS.map((badge) => (
+                <div
+                  key={badge.id}
+                  className={`badge-item ${badge.unlocked ? "badge-unlocked" : "badge-locked"} ${newlyUnlocked === badge.id ? "badge-pop" : ""}`}
+                  style={{ "--badge-color": badge.color }}
+                  onClick={() => badge.unlocked && setToastMsg(`${badge.name} — ${badge.desc}`)}
+                >
+                  <div className="badge-circle-wrap">
+                    <div className="badge-circle">
+                      {badge.unlocked && <div className="badge-circle-glow" />}
+                      <span className="badge-icon">{badge.icon}</span>
+                    </div>
+                    {badge.unlocked && (
+                      <svg className="badge-ring-svg" viewBox="0 0 44 44">
+                        <circle cx="22" cy="22" r="20" fill="none" stroke={badge.color} strokeWidth="2"
+                          strokeDasharray="126" strokeDashoffset="0" strokeLinecap="round"
+                          style={{ filter: `drop-shadow(0 0 5px ${badge.color})` }} />
+                      </svg>
+                    )}
+                    {badge.unlocked && (
+                      <div className="badge-check">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                      </div>
+                    )}
+                  </div>
+                  <p className="badge-name">{badge.name}</p>
+                  {badge.unlocked ? (
+                    <p className="badge-date">{badge.unlockedDate}</p>
+                  ) : (
+                    <p className="badge-pts-locked">+{badge.pts} XP</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* XP Activity Feed */}
+          <div style={{ padding: "0 1.25rem", marginTop: "1.5rem" }}>
+            <div className="section-header">
+              <h3 className="section-title">XP Activity</h3>
+              <span className="xp-total-chip">{xpPoints} XP total</span>
+            </div>
+            <div className="xp-feed">
+              {XP_EVENTS.slice().reverse().map((ev, i) => (
+                <div key={i} className="xp-feed-item">
+                  <div className="xp-feed-icon">{ev.icon}</div>
+                  <div className="xp-feed-info">
+                    <p className="xp-feed-action">{ev.action}</p>
+                    <p className="xp-feed-date">{ev.date}</p>
+                  </div>
+                  <div className="xp-feed-pts">+{ev.pts} XP</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Savings Goals with progress bars */}
+          <div style={{ padding: "0 1.25rem", marginTop: "1.5rem" }}>
+            <div className="section-header">
+              <h3 className="section-title">Savings Goals</h3>
+            </div>
+            {SAVINGS_GOALS.map((g) => {
+              const pct = Math.round((g.saved / g.target) * 100);
+              const remaining = g.target - g.saved;
+              const daysToComplete = Math.ceil(remaining / (g.saved / 90));
+              const completionDate = new Date(Date.now() + daysToComplete * 86400000);
+              const completionStr = completionDate.toLocaleDateString("en-ZA", { month: "short", year: "numeric" });
+              return (
+                <div key={g.id} className="goal-progress-card" style={{ "--goal-accent": g.accent }}>
+                  <div className="goal-progress-header">
+                    <span className="goal-progress-icon">{g.icon}</span>
+                    <div className="goal-progress-info">
+                      <p className="goal-progress-name">{g.name}</p>
+                      <p className="goal-progress-amounts">{formatCurrency(g.saved)} of {formatCurrency(g.target)}</p>
+                    </div>
+                    <div className="goal-progress-pct" style={{ color: g.accent }}>{pct}%</div>
+                  </div>
+                  <div className="goal-progress-bar-bg">
+                    <div
+                      className="goal-progress-bar-fill"
+                      style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${g.accent}88, ${g.accent})`, boxShadow: `0 0 10px ${g.accent}66` }}
+                    />
+                    <div className="goal-progress-bar-shimmer" style={{ left: `${pct}%` }} />
+                  </div>
+                  <p className="goal-progress-eta">Est. completion: <strong>{completionStr}</strong></p>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {/* ── Referral Tab ── */}
+      {rewardsTab === "referral" && (
+        <div style={{ padding: "0 1.25rem" }}>
+          {/* Hero card */}
+          <div className="referral-hero-card">
+            <div className="referral-hero-aurora" />
+            <div className="referral-hero-content">
+              <div className="referral-hero-emoji">🎁</div>
+              <h3 className="referral-hero-title">Invite friends, earn together</h3>
+              <p className="referral-hero-sub">You both get <strong className="referral-reward-amount">R50</strong> when they complete their first transaction</p>
+            </div>
+          </div>
+
+          {/* Referral code */}
+          <div className="referral-code-card">
+            <p className="referral-code-label">Your referral code</p>
+            <div className="referral-code-display">
+              <span className="referral-code-value">{REFERRAL_CODE}</span>
+              <button
+                className={`referral-copy-btn ${referralCopied ? "referral-copy-success" : ""}`}
+                onClick={handleCopyReferral}
+              >
+                {referralCopied ? (
+                  <>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    Copy Link
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Share buttons */}
+          <div className="referral-share-row">
+            {[
+              { label: "WhatsApp", emoji: "💬", color: "#25D366", action: () => setToastMsg("Opening WhatsApp...") },
+              { label: "Share", emoji: "📤", color: "#7c3aed", action: handleCopyReferral },
+              { label: "QR Code", emoji: "📱", color: "#06b6d4", action: () => setToastMsg("QR code coming soon") },
+            ].map((btn) => (
+              <button key={btn.label} className="referral-share-btn" style={{ "--share-color": btn.color }} onClick={btn.action}>
+                <span className="referral-share-emoji">{btn.emoji}</span>
+                <span className="referral-share-label">{btn.label}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Referral stats */}
+          <div className="referral-stats-row">
+            <div className="referral-stat-card">
+              <p className="referral-stat-value">3</p>
+              <p className="referral-stat-label">Invited</p>
+            </div>
+            <div className="referral-stat-card">
+              <p className="referral-stat-value" style={{ color: "#10b981" }}>R50</p>
+              <p className="referral-stat-label">Earned</p>
+            </div>
+            <div className="referral-stat-card">
+              <p className="referral-stat-value" style={{ color: "#f59e0b" }}>R100</p>
+              <p className="referral-stat-label">Pending</p>
+            </div>
+          </div>
+
+          {/* Referral status tracker */}
+          <div className="section-header" style={{ marginTop: "1.25rem" }}>
+            <h3 className="section-title">Your Referrals</h3>
+          </div>
+          <div className="referrals-list">
+            {REFERRALS.map((ref) => {
+              const stageIdx = referralStatusStages.indexOf(ref.status);
+              return (
+                <div key={ref.id} className="referral-track-card">
+                  <div className="referral-track-top">
+                    <div className="referral-track-avatar" style={{ background: ref.gradient }}>
+                      {ref.avatar}
+                    </div>
+                    <div className="referral-track-info">
+                      <p className="referral-track-name">{ref.name}</p>
+                      <p className="referral-track-date">Invited {ref.date}</p>
+                    </div>
+                    <div
+                      className="referral-track-status"
+                      style={{ color: referralStatusColors[ref.status], background: `${referralStatusColors[ref.status]}18`, borderColor: `${referralStatusColors[ref.status]}30` }}
+                    >
+                      {referralStatusLabels[ref.status]}
+                    </div>
+                  </div>
+                  {/* Progress pipeline */}
+                  <div className="referral-pipeline">
+                    {referralStatusStages.map((stage, si) => (
+                      <div key={stage} className="referral-pipeline-step">
+                        <div
+                          className={`referral-pipe-dot ${si <= stageIdx ? "referral-pipe-done" : ""}`}
+                          style={si <= stageIdx ? { background: referralStatusColors[ref.status], boxShadow: `0 0 6px ${referralStatusColors[ref.status]}` } : {}}
+                        />
+                        {si < referralStatusStages.length - 1 && (
+                          <div className={`referral-pipe-line ${si < stageIdx ? "referral-pipe-line-done" : ""}`} style={si < stageIdx ? { background: referralStatusColors[ref.status] } : {}} />
+                        )}
+                        <span className="referral-pipe-label">{referralStatusLabels[stage]}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {ref.status === "reward_earned" && (
+                    <div className="referral-reward-earned">
+                      <span>🎉</span> <span>You earned <strong>R{ref.reward}</strong> from this referral!</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* How it works */}
+          <div className="referral-how-card">
+            <p className="referral-how-title">How it works</p>
+            {[
+              { step: "1", text: "Share your unique code or link" },
+              { step: "2", text: "Friend signs up using your code" },
+              { step: "3", text: "They complete their first transaction" },
+              { step: "4", text: "You both get R50 credited instantly" },
+            ].map((s) => (
+              <div key={s.step} className="referral-how-step">
+                <div className="referral-how-num">{s.step}</div>
+                <p className="referral-how-text">{s.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   // ─── Tab Bar ────────────────────────────────────────────────────
 
   const [menuOpen, setMenuOpen] = useState(false);
 
   const TabBar = () => {
     const tabs = [
-      { id: "dashboard", icon: "/icons/nav-home.png", label: "Home", glow: "#06b6d4" },
-      { id: "wallets", icon: "/icons/nav-wallets.png", label: "Wallets", glow: "#f59e0b" },
-      { id: "history", icon: "/icons/nav-history.png", label: "History", glow: "#10b981" },
-      { id: "settings", icon: "/icons/nav-settings.png", label: "Settings", glow: "#ec4899" },
+      { id: "dashboard", icon: "/icons/nav-home.png", label: "Home",    glow: "#06b6d4" },
+      { id: "wallets",   icon: "/icons/nav-wallets.png", label: "Wallets", glow: "#f59e0b" },
+      { id: "rewards",   svgIcon: <RewardsNavIcon active={screen === "rewards"} />, label: "Rewards", glow: "#c4b5fd" },
+      { id: "history",   icon: "/icons/nav-history.png", label: "History", glow: "#10b981" },
+      { id: "settings",  icon: "/icons/nav-settings.png", label: "Settings", glow: "#ec4899" },
     ];
-    const angles = [-150, -110, -70, -30];
+    const angles = [-160, -125, -90, -55, -20];
     const radius = 140;
     return (
       <>
@@ -2321,25 +2695,27 @@ export default function SwifterApp() {
             const rad = (angles[i] * Math.PI) / 180;
             const x = menuOpen ? Math.cos(rad) * radius : 0;
             const y = menuOpen ? Math.sin(rad) * radius : 0;
-            const z = menuOpen ? 20 + i * 5 : 0; // depth layer
+            const z = menuOpen ? 20 + i * 5 : 0;
             return (
               <div
                 key={tab.id}
                 className={`radial-item ${menuOpen ? "radial-item-open" : ""} ${active ? "radial-item-active" : ""}`}
                 style={{
                   transform: `translate3d(${x}px, ${y}px, ${z}px) scale(${menuOpen ? 1 : 0.2})`,
-                  transitionDelay: menuOpen ? `${80 + i * 70}ms` : `${(3 - i) * 50}ms`,
+                  transitionDelay: menuOpen ? `${80 + i * 60}ms` : `${(4 - i) * 45}ms`,
                   '--item-glow': tab.glow,
                 }}
               >
-                {/* Ambient glow behind icon */}
                 <div className="radial-item-glow" />
                 <button
                   onClick={() => { navigate(tab.id); setMenuOpen(false); }}
                   className="radial-item-btn"
                   id={`tab-${tab.id}`}
                 >
-                  <Image src={tab.icon} alt={tab.label} width={40} height={40} className="radial-item-icon" />
+                  {tab.icon
+                    ? <Image src={tab.icon} alt={tab.label} width={40} height={40} className="radial-item-icon" />
+                    : <div className="radial-item-svg-icon">{tab.svgIcon}</div>
+                  }
                 </button>
                 <span className={`radial-item-label ${menuOpen ? "radial-label-show" : ""}`}>{tab.label}</span>
               </div>
@@ -2459,9 +2835,23 @@ export default function SwifterApp() {
           {screen === "addFunds" && AddFundsScreen()}
           {screen === "history" && HistoryScreen()}
           {screen === "settings" && SettingsScreen()}
+          {screen === "rewards" && RewardsScreen()}
           {screen === "manageCards" && <ManageCardsScreen />}
         </div>
         {!["send", "addFunds", "manageCards"].includes(screen) && <TabBar />}
+        {/* Badge unlock celebration */}
+        {newlyUnlocked && (
+          <div className="badge-unlock-toast" onClick={() => setNewlyUnlocked(null)}>
+            <span className="badge-unlock-toast-icon">
+              {ACHIEVEMENTS.find(a => a.id === newlyUnlocked)?.icon}
+            </span>
+            <div className="badge-unlock-toast-text">
+              <strong>Badge Unlocked!</strong>
+              <span>{ACHIEVEMENTS.find(a => a.id === newlyUnlocked)?.name}</span>
+            </div>
+            <span className="badge-unlock-toast-pts">+{ACHIEVEMENTS.find(a => a.id === newlyUnlocked)?.pts} XP</span>
+          </div>
+        )}
         {/* Incoming Payment Banner */}
         {incomingPayment && (
           <div className="incoming-payment-banner" onClick={() => setIncomingPayment(null)}>
