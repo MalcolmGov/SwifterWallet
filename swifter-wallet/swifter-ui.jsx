@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import SwifterAvatar from "./components/SwifterAvatar";
+import BiometricPrompt from "./components/BiometricPrompt";
 import { Conversation } from "@elevenlabs/client";
 
 // ─── 3D Icon Component ───────────────────────────────────────────────
@@ -312,6 +313,21 @@ export default function SwifterApp() {
   const [notifChannel, setNotifChannel] = useState("whatsapp");
   const [notifEnabled, setNotifEnabled] = useState(true);
   const [toastMsg, setToastMsg] = useState("");
+
+  // ── Biometric security
+  const [biometricEnabled, setBiometricEnabled] = useState(() =>
+    typeof window !== "undefined" ? localStorage.getItem("bioEnabled") === "true" : false
+  );
+  const [biometricRegistered, setBiometricRegistered] = useState(() =>
+    typeof window !== "undefined" ? localStorage.getItem("bioRegistered") === "true" : false
+  );
+  const [txThreshold, setTxThreshold] = useState(() =>
+    typeof window !== "undefined" ? parseFloat(localStorage.getItem("txThreshold") || "500") : 500
+  );
+  const [bioRegistering, setBioRegistering] = useState(false);
+  const [pendingVoiceAction, setPendingVoiceAction] = useState(null);
+  // Resolves the Promise returned to the voice agent when biometric completes
+  const voicePendingRef = useRef(null);
 
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 1400);
@@ -710,9 +726,9 @@ export default function SwifterApp() {
     }
   }, []);
 
-  // Shared action-executor used by every voice tool. Returns a result
-  // object that the agent will see on the next turn.
-  const voiceExecuteFunction = useCallback((name, args = {}) => {
+  // Inner executor — runs the action immediately. Called directly and by the
+  // biometric modal's onSuccess handler.
+  const executeVoiceAction = useCallback((name, args = {}) => {
     let result = {};
     switch (name) {
 
@@ -890,7 +906,24 @@ export default function SwifterApp() {
         result = { error: "Unknown function" };
     }
     return result;
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Async wrapper exposed to ElevenLabs client tools. High-value send/transfer
+  // commands show a biometric modal and return a Promise that resolves after
+  // the user authenticates.
+  const voiceExecuteFunction = useCallback(async (name, args = {}) => {
+    const amount = parseFloat(args.amount ?? 0);
+    const isHighValue = ["send_money", "transfer_funds"].includes(name) && amount > txThreshold;
+
+    if (isHighValue && biometricEnabled && biometricRegistered) {
+      setPendingVoiceAction({ name, args });
+      return new Promise((resolve) => {
+        voicePendingRef.current = resolve;
+      });
+    }
+
+    return executeVoiceAction(name, args);
+  }, [executeVoiceAction, txThreshold, biometricEnabled, biometricRegistered]);
 
   const stopVoiceSession = useCallback(async () => {
     if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
@@ -1220,6 +1253,9 @@ export default function SwifterApp() {
           recipient={sendRecipient}
           amount={sendAmount}
           navigate={navigate}
+          biometricEnabled={biometricEnabled}
+          biometricRegistered={biometricRegistered}
+          txThreshold={txThreshold}
         />
       )}
     </div>
@@ -1740,7 +1776,6 @@ export default function SwifterApp() {
         <p className="settings-section-label">Security</p>
         <div className="settings-list">
           {[
-            { emoji: "🔐", label: "Biometrics", desc: "Face ID & fingerprint", action: () => setToastMsg("Biometrics coming soon") },
             { emoji: "🛡️", label: "PayGuard™", desc: "AI fraud protection · Active", accent: "#10b981", action: () => setToastMsg("PayGuard is active and protecting your account") },
             { emoji: "🗝️", label: "Change PIN", desc: "Update your security PIN", action: () => setToastMsg("PIN change coming soon") },
           ].map((item, i) => (
@@ -1753,6 +1788,81 @@ export default function SwifterApp() {
               <ChevronRightSvg />
             </button>
           ))}
+        </div>
+
+        {/* ── Biometric Security ─────────────────────────────────── */}
+        <div className="smartsendr-card" style={{ marginTop: "1rem" }}>
+          <div className="smartsendr-header">
+            <span className="smartsendr-logo">🔐 Biometric Security</span>
+            <button
+              className={`toggle-switch ${biometricEnabled ? "toggle-on" : ""}`}
+              onClick={async () => {
+                if (!biometricEnabled) {
+                  const supported = window.PublicKeyCredential
+                    ? await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().catch(() => false)
+                    : false;
+                  if (!supported) { setToastMsg("Biometrics not supported on this device"); return; }
+                  setBiometricEnabled(true);
+                  localStorage.setItem("bioEnabled", "true");
+                } else {
+                  setBiometricEnabled(false);
+                  localStorage.setItem("bioEnabled", "false");
+                }
+              }}
+            >
+              <div className="toggle-thumb" />
+            </button>
+          </div>
+          <p className="smartsendr-desc">Use Face ID or fingerprint to confirm high-value transactions</p>
+          {biometricEnabled && (
+            <div style={{ marginTop: "0.75rem" }}>
+              {biometricRegistered ? (
+                <div className="bio-status-row">
+                  <span className="bio-status-ok">✓ Biometric registered</span>
+                  <button className="bio-reregister-btn" onClick={async () => {
+                    try {
+                      const optRes = await fetch("/api/webauthn/register/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) });
+                      const optionsJSON = await optRes.json();
+                      const { startRegistration } = await import("@simplewebauthn/browser");
+                      const attResp = await startRegistration({ optionsJSON });
+                      const verRes = await fetch("/api/webauthn/register/finish", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(attResp) });
+                      const result = await verRes.json();
+                      if (result.verified) setToastMsg("Biometric updated");
+                    } catch (err) { if (err?.name !== "NotAllowedError") setToastMsg("Update cancelled"); }
+                  }}>Update</button>
+                </div>
+              ) : (
+                <button className="primary-btn primary-violet bio-register-btn" disabled={bioRegistering} onClick={async () => {
+                  setBioRegistering(true);
+                  try {
+                    const optRes = await fetch("/api/webauthn/register/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) });
+                    if (!optRes.ok) throw new Error((await optRes.json()).error);
+                    const optionsJSON = await optRes.json();
+                    const { startRegistration } = await import("@simplewebauthn/browser");
+                    const attResp = await startRegistration({ optionsJSON });
+                    const verRes = await fetch("/api/webauthn/register/finish", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(attResp) });
+                    const result = await verRes.json();
+                    if (result.verified) { setBiometricRegistered(true); localStorage.setItem("bioRegistered", "true"); setToastMsg("Biometric registered!"); }
+                  } catch (err) { if (err?.name !== "NotAllowedError") setToastMsg("Registration failed. Try again."); }
+                  finally { setBioRegistering(false); }
+                }}>{bioRegistering ? "Setting up…" : "Set Up Biometric"}</button>
+              )}
+              {biometricRegistered && (
+                <div style={{ marginTop: "1rem" }}>
+                  <p className="smartsendr-desc" style={{ marginBottom: "0.5rem" }}>Require biometric above:</p>
+                  <div className="smartsendr-channels" style={{ flexWrap: "wrap", gap: "0.4rem" }}>
+                    {[100, 250, 500, 1000, 2000].map((val) => (
+                      <button key={val} className={`channel-chip ${txThreshold === val ? "channel-active" : ""}`}
+                        style={{ "--ch-color": "#7c3aed", flex: "none" }}
+                        onClick={() => { setTxThreshold(val); localStorage.setItem("txThreshold", String(val)); setToastMsg(`Threshold set to R${val}`); }}>
+                        R{val}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* SmartSendr */}
@@ -2062,6 +2172,37 @@ export default function SwifterApp() {
             </div>
           </div>
         )}
+        {/* ── Voice biometric confirmation modal ──────────────── */}
+        {pendingVoiceAction && (
+          <div className="bio-modal-overlay">
+            <div className="bio-modal-panel">
+              <div className="bio-modal-header">
+                <p className="bio-modal-label">Biometric required</p>
+                <p className="bio-modal-amount">
+                  R{Number(pendingVoiceAction.args.amount).toFixed(2)}
+                  {pendingVoiceAction.args.recipient && (
+                    <span className="bio-modal-to"> → {pendingVoiceAction.args.recipient}</span>
+                  )}
+                </p>
+              </div>
+              <BiometricPrompt
+                amount={pendingVoiceAction.args.amount}
+                mode="transaction"
+                onSuccess={() => {
+                  const result = executeVoiceAction(pendingVoiceAction.name, pendingVoiceAction.args);
+                  voicePendingRef.current?.(result);
+                  voicePendingRef.current = null;
+                  setPendingVoiceAction(null);
+                }}
+                onCancel={() => {
+                  voicePendingRef.current?.({ success: false, message: "Transaction cancelled — biometric verification declined" });
+                  voicePendingRef.current = null;
+                  setPendingVoiceAction(null);
+                }}
+              />
+            </div>
+          </div>
+        )}
         {toastMsg && (
           <div className="premium-toast" role="alert">
             <div className="premium-toast-icon">
@@ -2078,12 +2219,15 @@ export default function SwifterApp() {
 
 // ─── Send Confirmation ───────────────────────────────────────────────
 
-function SendConfirmation({ wallet, recipient, amount, navigate }) {
+function SendConfirmation({ wallet, recipient, amount, navigate, biometricEnabled = false, biometricRegistered = false, txThreshold = 500 }) {
   const [sent, setSent] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [pgPhase, setPgPhase] = useState(null); // null | "scanning" | "allowed" | "blocked"
+  const [bioRequired, setBioRequired] = useState(false);
 
-  const handleSend = async () => {
+  const needsBiometric = biometricEnabled && biometricRegistered && parseFloat(amount) > txThreshold;
+
+  const proceedWithSend = async () => {
     // ─── PayGuard SDK Risk Assessment ────────────────────
     setPgPhase("scanning");
 
@@ -2132,6 +2276,26 @@ function SendConfirmation({ wallet, recipient, amount, navigate }) {
       setSent(true);
     }, 1800);
   };
+
+  const handleSend = () => {
+    if (needsBiometric) {
+      setBioRequired(true);
+    } else {
+      proceedWithSend();
+    }
+  };
+
+  // ─── Biometric confirmation phase ───────────────────────────────────
+  if (bioRequired) {
+    return (
+      <BiometricPrompt
+        amount={amount}
+        mode="transaction"
+        onSuccess={() => { setBioRequired(false); proceedWithSend(); }}
+        onCancel={() => setBioRequired(false)}
+      />
+    );
+  }
 
   // PayGuard scanning overlay
   if (pgPhase === "scanning") {
