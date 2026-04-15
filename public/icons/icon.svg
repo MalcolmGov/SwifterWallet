@@ -1,71 +1,82 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
+    <!-- Background gradient: deep navy → dark blue -->
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1e0b4a"/>
-      <stop offset="60%" stop-color="#140d30"/>
-      <stop offset="100%" stop-color="#0a0a12"/>
+      <stop offset="0%" stop-color="#0d1b3e"/>
+      <stop offset="55%" stop-color="#0f1f4a"/>
+      <stop offset="100%" stop-color="#081228"/>
     </linearGradient>
+    <!-- Glyph gradient: electric blue → cyan -->
     <linearGradient id="glyph" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#c084fc"/>
-      <stop offset="50%" stop-color="#a855f7"/>
-      <stop offset="100%" stop-color="#7c3aed"/>
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="45%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
     </linearGradient>
+    <!-- Border gradient -->
+    <linearGradient id="border" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.2"/>
+    </linearGradient>
+    <!-- Radial glow behind glyph -->
     <radialGradient id="glow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.25"/>
-      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
+      <stop offset="0%" stop-color="#2563eb" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
     </radialGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="4" stdDeviation="16" flood-color="#7c3aed" flood-opacity="0.5"/>
+    <!-- Drop shadow filter for glyph -->
+    <filter id="glowFilter" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="14" flood-color="#38bdf8" flood-opacity="0.7"/>
     </filter>
   </defs>
 
-  <!-- Background: rounded square -->
-  <rect width="512" height="512" rx="112" ry="112" fill="url(#bg)"/>
+  <!-- Background rounded square -->
+  <rect width="512" height="512" rx="108" ry="108" fill="url(#bg)"/>
 
   <!-- Subtle radial glow center -->
-  <ellipse cx="256" cy="256" rx="200" ry="200" fill="url(#glow)"/>
+  <ellipse cx="256" cy="256" rx="210" ry="210" fill="url(#glow)"/>
 
-  <!-- Border glow ring -->
-  <rect width="512" height="512" rx="112" ry="112" fill="none"
-        stroke="#7c3aed" stroke-width="1.5" opacity="0.4"/>
+  <!-- Border highlight -->
+  <rect width="512" height="512" rx="108" ry="108" fill="none"
+        stroke="url(#border)" stroke-width="2"/>
 
-  <!-- Stylised "S" glyph -->
-  <!--
-    Hand-crafted S path centred at (256, 256).
-    Drawn as two arcs (top bowl + bottom bowl) typical of a rounded S.
-  -->
-  <path filter="url(#shadow)"
+  <!-- Stylised "S" glyph — bold, geometric, centered -->
+  <!-- Upper arc of S: from top-right, sweeping left and down -->
+  <path
+    filter="url(#glowFilter)"
     d="
-      M 315 160
-      C 315 160 290 140 256 140
-      C 207 140 172 170 172 210
-      C 172 248 200 268 240 278
-      L 272 287
-      C 310 297 340 318 340 360
-      C 340 402 305 372 256 372
-      C 220 372 190 355 180 340
+      M 318 158
+      C 318 158 291 136 255 136
+      C 203 136 166 168 166 212
+      C 166 253 196 275 238 286
+      L 274 296
+      C 316 307 346 330 346 374
+      C 346 418 308 376 255 376
+      C 216 376 184 358 172 341
     "
     stroke="url(#glyph)"
-    stroke-width="42"
+    stroke-width="46"
     stroke-linecap="round"
     stroke-linejoin="round"
     fill="none"/>
 
-  <!-- Second segment of S (the lower bowl) -->
-  <path filter="url(#shadow)"
+  <!-- Lower arc of S: continuation -->
+  <path
+    filter="url(#glowFilter)"
     d="
-      M 197 352
-      C 197 352 222 372 256 372
-      C 305 372 340 342 340 302
-      C 340 264 312 244 272 234
-      L 240 225
-      C 202 215 172 194 172 152
-      C 172 110 207 140 256 140
-      C 292 140 322 157 332 172
+      M 192 354
+      C 192 354 219 376 255 376
+      C 307 376 346 344 346 300
+      C 346 259 316 237 274 226
+      L 238 216
+      C 196 205 166 183 166 139
+      C 166 95 203 136 255 136
+      C 294 136 326 154 338 171
     "
     stroke="url(#glyph)"
-    stroke-width="42"
+    stroke-width="46"
     stroke-linecap="round"
     stroke-linejoin="round"
     fill="none"/>
+
+  <!-- Small cyan accent dot — top right of S curve for premium feel -->
+  <circle cx="338" cy="162" r="10" fill="#38bdf8" opacity="0.85" filter="url(#glowFilter)"/>
 </svg>

@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0d1b3e"/>
+      <stop offset="55%" stop-color="#0f1f4a"/>
+      <stop offset="100%" stop-color="#081228"/>
+    </linearGradient>
+    <linearGradient id="glyph" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="45%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#e0f2fe"/>
+      <stop offset="60%" stop-color="#bae6fd"/>
+      <stop offset="100%" stop-color="#67e8f9"/>
+    </linearGradient>
+    <radialGradient id="glow1" cx="28%" cy="50%" r="45%">
+      <stop offset="0%" stop-color="#2563eb" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="72%" cy="50%" r="40%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glowFilter" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="12" flood-color="#38bdf8" flood-opacity="0.7"/>
+    </filter>
+    <filter id="textShadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="8" flood-color="#2563eb" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Glow blobs -->
+  <ellipse cx="340" cy="315" rx="360" ry="280" fill="url(#glow1)"/>
+  <ellipse cx="860" cy="315" rx="320" ry="240" fill="url(#glow2)"/>
+
+  <!-- Subtle grid lines for depth -->
+  <g stroke="#38bdf8" stroke-opacity="0.04" stroke-width="1">
+    <line x1="0" y1="105" x2="1200" y2="105"/>
+    <line x1="0" y1="210" x2="1200" y2="210"/>
+    <line x1="0" y1="315" x2="1200" y2="315"/>
+    <line x1="0" y1="420" x2="1200" y2="420"/>
+    <line x1="0" y1="525" x2="1200" y2="525"/>
+    <line x1="200" y1="0" x2="200" y2="630"/>
+    <line x1="400" y1="0" x2="400" y2="630"/>
+    <line x1="600" y1="0" x2="600" y2="630"/>
+    <line x1="800" y1="0" x2="800" y2="630"/>
+    <line x1="1000" y1="0" x2="1000" y2="630"/>
+  </g>
+
+  <!-- Icon (left side) — scaled-down version of the app icon -->
+  <g transform="translate(120, 155) scale(0.625)">
+    <!-- Icon background -->
+    <rect width="512" height="512" rx="108" ry="108" fill="#0f1f4a" opacity="0.9"/>
+    <rect width="512" height="512" rx="108" ry="108" fill="none"
+          stroke="#38bdf8" stroke-width="3" opacity="0.35"/>
+    <!-- S glyph (same paths, smaller scale) -->
+    <path filter="url(#glowFilter)"
+      d="M 318 158 C 318 158 291 136 255 136 C 203 136 166 168 166 212 C 166 253 196 275 238 286 L 274 296 C 316 307 346 330 346 374 C 346 418 308 376 255 376 C 216 376 184 358 172 341"
+      stroke="url(#glyph)" stroke-width="46" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <path filter="url(#glowFilter)"
+      d="M 192 354 C 192 354 219 376 255 376 C 307 376 346 344 346 300 C 346 259 316 237 274 226 L 238 216 C 196 205 166 183 166 139 C 166 95 203 136 255 136 C 294 136 326 154 338 171"
+      stroke="url(#glyph)" stroke-width="46" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <circle cx="338" cy="162" r="10" fill="#38bdf8" opacity="0.85" filter="url(#glowFilter)"/>
+  </g>
+
+  <!-- App name -->
+  <text x="500" y="268" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif"
+        font-size="88" font-weight="800" letter-spacing="-3"
+        fill="url(#textGrad)" filter="url(#textShadow)">Swifter</text>
+  <text x="500" y="360" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif"
+        font-size="88" font-weight="800" letter-spacing="-3"
+        fill="url(#textGrad)" filter="url(#textShadow)" opacity="0.75">Wallet</text>
+
+  <!-- Tagline -->
+  <text x="500" y="420" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif"
+        font-size="28" font-weight="400" letter-spacing="0.5"
+        fill="#7dd3fc" opacity="0.85">Send, receive &amp; manage money — instantly.</text>
+
+  <!-- Thin accent line -->
+  <line x1="500" y1="448" x2="900" y2="448" stroke="url(#glyph)" stroke-width="2" opacity="0.5"/>
+
+  <!-- URL / brand tag -->
+  <text x="500" y="490" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif"
+        font-size="22" font-weight="500" letter-spacing="2"
+        fill="#38bdf8" opacity="0.55">swifter-wallet.vercel.app</text>
+
+  <!-- Corner accent dots -->
+  <circle cx="48" cy="48" r="4" fill="#38bdf8" opacity="0.4"/>
+  <circle cx="1152" cy="48" r="4" fill="#06b6d4" opacity="0.4"/>
+  <circle cx="48" cy="582" r="4" fill="#38bdf8" opacity="0.4"/>
+  <circle cx="1152" cy="582" r="4" fill="#06b6d4" opacity="0.4"/>
+</svg>
