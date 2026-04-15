@@ -265,7 +265,7 @@ export default function SwifterApp() {
 
   useEffect(() => {
     return () => { if (peerRef.current) stopVoiceSession(); };
-  }, [stopVoiceSession]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Helper Functions ───────────────────────────────────────────
 
