@@ -4,52 +4,37 @@ import React, { useState } from "react";
 import BiometricPrompt from "./BiometricPrompt";
 import ProcessingAnimation from "./ProcessingAnimation";
 import { CheckSvg } from "../src/lib/icons";
+import { assessTransaction } from "../src/lib/payguard";
 
 export default function SendConfirmation({ wallet, recipient, amount, navigate, biometricEnabled = false, biometricRegistered = false, txThreshold = 500, onTransactionComplete }) {
   const [sent, setSent] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [pgPhase, setPgPhase] = useState(null); // null | "scanning" | "allowed" | "blocked"
   const [bioRequired, setBioRequired] = useState(false);
+  const [blockReason, setBlockReason] = useState(null);
 
   const needsBiometric = biometricEnabled && biometricRegistered && parseFloat(amount) > txThreshold;
 
   const proceedWithSend = async () => {
-    // ─── PayGuard SDK Risk Assessment ────────────────────
     setPgPhase("scanning");
 
-    try {
-      // Real SDK integration pattern — swap API key via env var
-      const apiKey = typeof window !== "undefined" && window.__PAYGUARD_KEY__
-        ? window.__PAYGUARD_KEY__
-        : "pk_sandbox_swifterwallet_demo";
+    const decision = await assessTransaction({
+      userId: wallet?.userId || "CUST-MALCOLM-001",
+      transactionId: `TXN-${Date.now()}`,
+      amount: parseFloat(amount),
+      currency: "ZAR",
+      recipientId: recipient?.id,
+      recipientInContacts: Boolean(recipient?.id),
+      metadata: { wallet: wallet?.name, recipient: recipient?.name },
+    });
 
-      const response = await fetch("https://risk-engine-production-18e6.up.railway.app/api/v1/assess", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
-        body: JSON.stringify({
-          transactionId: `TXN-${Date.now()}`,
-          amount: parseFloat(amount),
-          currency: "ZAR",
-          channel: "mobile_banking",
-          paymentMethod: "wallet_transfer",
-          customerId: "CUST-MALCOLM-001",
-          recipientId: recipient?.id || "RCP-001",
-          metadata: { source: "SwifterWallet", version: "1.0" },
-        }),
-      });
-
-      const result = response.ok ? await response.json() : { decision: "ALLOW", riskScore: 12 };
-
-      if (result.decision === "BLOCK") {
-        setPgPhase("blocked");
-        return; // Stop — fraud detected
-      }
-
-      setPgPhase("allowed");
-    } catch {
-      // Fail-open: if PayGuard is unreachable, allow the transaction
-      setPgPhase("allowed");
+    if (decision.recommended_action === "BLOCK") {
+      setBlockReason(decision.warning_message || decision.triggered_rules?.[0] || "Suspicious activity");
+      setPgPhase("blocked");
+      return;
     }
+
+    setPgPhase("allowed");
 
     // Brief pause to show the "Secure" badge
     await new Promise((r) => setTimeout(r, 800));
@@ -117,8 +102,8 @@ export default function SendConfirmation({ wallet, recipient, amount, navigate, 
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         </div>
         <p className="processing-title" style={{ color: "#ef4444" }}>Transaction Blocked</p>
-        <p className="processing-sub">PayGuard detected suspicious activity</p>
-        <button onClick={() => { setPgPhase(null); navigate("dashboard"); }} className="primary-btn" style={{ marginTop: "2rem", width: "80%", background: "#ef4444" }}>Back to Dashboard</button>
+        <p className="processing-sub">{blockReason || "PayGuard detected suspicious activity"}</p>
+        <button onClick={() => { setPgPhase(null); setBlockReason(null); navigate("dashboard"); }} className="primary-btn" style={{ marginTop: "2rem", width: "80%", background: "#ef4444" }}>Back to Dashboard</button>
       </div>
     );
   }
