@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { assessSession } from "../src/lib/payguard";
 
 // ─── Animated fingerprint SVG ────────────────────────────────────────────────
 
@@ -120,6 +121,9 @@ export default function BiometricPrompt({ amount, onSuccess, onCancel, mode = "t
       const result = await verRes.json();
 
       if (result.verified) {
+        // Fire-and-forget session-level PayGuard check (doesn't block UX).
+        // Only surfaces in dashboard analytics — we don't halt login on it.
+        assessSession(result.userId ?? "CUST-MALCOLM-001").catch(() => {});
         setStatus("success");
         setTimeout(() => onSuccess?.(), 650);
       } else {
